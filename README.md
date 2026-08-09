@@ -1,0 +1,2 @@
+### Hexlet tests and linter status:
+[![Actions Status](https://github.com/ilyaRozhkov/test-program-please-ignore-2-project-426/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/ilyaRozhkov/test-program-please-ignore-2-project-426/actions)
