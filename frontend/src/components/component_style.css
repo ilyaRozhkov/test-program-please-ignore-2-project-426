@@ -1,0 +1,98 @@
+.navigation-container{
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid rgb(204, 204, 204);
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    background-color: white;
+}
+
+.navigation-button{
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+    border: 1px solid #e1e1e1;
+    padding: 12px;
+    border-radius: 8px;
+}
+.container-card{
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    width: 360px;
+    height: 300px;
+    margin: 8px;
+    border: 1px solid gray;
+    border-radius: 8px;
+    padding: 4px;
+    justify-content: flex-start;
+}
+
+.container-card-img{
+display: flex;
+    width: 300px;
+    height: 180px;
+    flex-direction: row;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+.container-card-text{
+    height: 100px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    justify-content: space-around;
+}
+.container-card-text-title{
+    font-size: 24px;
+    font-weight: 600;
+}
+.container-card-text-sub-title{
+        font-size: 18px;
+    color: gray;
+}
+.container-card-text-bottom{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+}
+
+.container-card-text-bottom-price{
+        font-size: 18px;
+    font-weight: 600;
+}
+
+.container-card-text-bottom-available{
+    padding: 4px;
+    border: 1px solid;
+    border-radius: 4px;
+    background: aquamarine;
+    color: green;
+}
+.container-card-text-bottom-not-available{
+    padding: 4px;
+    border: 1px solid;
+    border-radius: 4px;
+    background: rgb(255, 127, 148);
+    color: rgb(255, 0, 0);
+}
+.link-to-item{
+        text-decoration: none;
+    width: 100%;
+    color: blue;
+    font-size: 18px;
+    font-weight: 600;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    background: #c1c1ff;
+    border-radius: 4px;
+    margin-top: 8px;
+}
