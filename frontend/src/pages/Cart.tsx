@@ -58,14 +58,16 @@ export const Cart: React.FC = () => {
       </div>
     );
   }
-
+  console.log('cartItems',cartItems)
   return (
-    <div>
+    <div className='cart_container'>
       <h2>Корзина</h2>
-      {cartItems.map(item => (
-        <div key={item.productId} data-testid="cart-item" style={{ border: '1px solid #ccc', padding: '1rem', margin: '0.5rem 0' }}>
+      {cartItems.map(item => {
+        const totalPrice = item.price.amount * item.quantity
+        return (
+        <div key={item.productId} data-testid="cart-item" className='cart_item'>
           <div>{item.name}</div>
-          <div>{item.price.amount} ₽</div>
+          <div>{item.price.amount} ₽ за штуку</div>
           <div>
             <label>Количество:</label>
             <input
@@ -76,9 +78,10 @@ export const Cart: React.FC = () => {
               data-testid="cart-item-qty"
             />
           </div>
+          <div>{totalPrice} ₽</div>
           <button onClick={() => removeItem(item.productId)} data-testid="cart-item-remove">Удалить</button>
         </div>
-      ))}
+      )})}
       <div data-testid="cart-total">
         <strong>Итого: {total} ₽</strong>
       </div>

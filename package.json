@@ -1,5 +1,5 @@
 {
-  "name": "pc-store",
+  "name": "@hexlet/code",
   "version": "1.0.0",
   "scripts": {
     "install:all": "npm ci --prefix backend && npm ci --prefix frontend",

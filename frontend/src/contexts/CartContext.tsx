@@ -17,21 +17,20 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [items, setItems] = useState<CartItem[]>([]);
-
-  // Загрузка из localStorage при монтировании
-  useEffect(() => {
+  const [items, setItems] = useState<CartItem[]>(() => {
+    // Загрузка из localStorage при инициализации
     const stored = localStorage.getItem('cart');
     if (stored) {
       try {
-        setItems(JSON.parse(stored));
+        return JSON.parse(stored);
       } catch {
-        setItems([]);
+        return [];
       }
     }
-  }, []);
+    return [];
+  });
 
-  // Сохранение в localStorage при каждом изменении
+  // Сохранение в localStorage при каждом изменении items
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(items));
   }, [items]);
