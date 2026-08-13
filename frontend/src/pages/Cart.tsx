@@ -15,9 +15,13 @@ interface CartItemWithDetails {
 }
 
 export const Cart: React.FC = () => {
-  const { items, updateQuantity, removeItem, clearCart } = useCart();
+  const { items, updateQuantity, removeItem, clearCart,refreshCart } = useCart();
   const [cartItems, setCartItems] = useState<CartItemWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
+
+useEffect(() => {
+  refreshCart();
+}, [refreshCart]);
 
   useEffect(() => {
     if (items.length === 0) {
