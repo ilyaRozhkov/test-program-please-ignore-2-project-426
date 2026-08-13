@@ -6,7 +6,7 @@ import { getProductsByIds, createOrder } from '../api/client';
 import { Product, CreateOrderRequest } from '../api/types';
 
 export const Checkout: React.FC = () => {
-  const { items, clearCart } = useCart();
+  const { items, clearCart, refreshCart } = useCart();
   const { token } = useAuth();
   const navigate = useNavigate();
 
@@ -17,6 +17,10 @@ export const Checkout: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [cartDetails, setCartDetails] = useState<any[]>([]);
+
+  useEffect(() => {
+    refreshCart();
+  }, [refreshCart]);
 
   useEffect(() => {
     if (items.length === 0) {
@@ -37,28 +41,37 @@ export const Checkout: React.FC = () => {
 
   const total = cartDetails.reduce((sum, item) => sum + (item.price?.amount || 0) * item.quantity, 0);
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError('');
-  setLoading(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
-  try {
-    const orderData: CreateOrderRequest = {
-      items: items.map(i => ({ productId: i.productId, quantity: i.quantity })),
-      deliveryMethod,
-      recipientName,
-      phone,
-      address: deliveryMethod === 'delivery' ? address : undefined,
-    };
-    const result = await createOrder(orderData, token!);
-    // Переходим на страницу успеха с данными заказа (корзину очистим там)
-    navigate('/order-success', { state: { order: result.order } });
-  } catch (err: any) {
-    setError(err.message || 'Ошибка оформления заказа');
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      refreshCart();
+      const stored = localStorage.getItem('cart');
+      let cartItems = items;
+      if (stored) {
+        try {
+          cartItems = JSON.parse(stored);
+        } catch {}
+      }
+      
+      const orderData: CreateOrderRequest = {
+        items: cartItems.map(i => ({ productId: i.productId, quantity: i.quantity })),
+        deliveryMethod,
+        recipientName,
+        phone,
+        address: deliveryMethod === 'delivery' ? address : undefined,
+      };
+      const result = await createOrder(orderData, token!);
+      clearCart();
+      navigate('/order-success', { state: { order: result.order } });
+    } catch (err: any) {
+      setError(err.message || 'Ошибка оформления заказа');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div>
