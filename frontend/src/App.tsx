@@ -11,6 +11,7 @@ import { Product } from './pages/Product';
 import { Cart } from './pages/Cart';
 import { Checkout } from './pages/Checkout';
 import { Account } from './pages/Account';
+import { OrderSuccess } from './pages/OrderSuccess';
 
 function App() {
   return (
@@ -35,6 +36,11 @@ function App() {
                 <Account />
               </ProtectedRoute>
             } />
+            <Route path="/order-success" element={
+  <ProtectedRoute>
+    <OrderSuccess />
+  </ProtectedRoute>
+} />
           </Routes>
         </CartProvider>
       </AuthProvider>
