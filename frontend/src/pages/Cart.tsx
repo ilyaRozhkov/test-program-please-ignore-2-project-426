@@ -29,7 +29,7 @@ export const Cart: React.FC = () => {
     getProductsByIds(ids)
       .then(products => {
         const merged = items.map(item => {
-          const product = products.find(p => p.id === item.productId);
+          const product = products.find((p: Product) => p.id === item.productId);
           return {
             productId: item.productId,
             quantity: item.quantity,
