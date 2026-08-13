@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { register } from '../api/client';
+import { register, login } from '../api/client';
+import { useAuth } from '../contexts/AuthContext';
 import { RegisterRequest } from '../api/types';
 
 export const Register: React.FC = () => {
@@ -8,6 +9,7 @@ export const Register: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login: authLogin } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,7 +17,11 @@ export const Register: React.FC = () => {
     try {
       const data: RegisterRequest = { email, password };
       await register(data);
-      navigate('/login', { state: { message: 'Регистрация успешна, войдите' } });
+
+      const { token, user } = await login({ email, password });
+      authLogin(token, user);
+
+      navigate('/');
     } catch (err: any) {
       setError(err.message);
     }
