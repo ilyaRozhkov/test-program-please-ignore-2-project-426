@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { getProductsByIds } from '../api/client';
 import { Product } from '../api/types';
@@ -59,7 +59,7 @@ useEffect(() => {
     return (
       <div data-testid="cart-empty">
         <h2>Корзина пуста</h2>
-        <Link to="/catalog">Вернуться в каталог</Link>
+        <NavLink to="/catalog">Вернуться в каталог</NavLink>
       </div>
     );
   }
@@ -67,6 +67,8 @@ useEffect(() => {
   return (
     <div className='cart_container'>
       <h2>Корзина</h2>
+      <div className='cart_container_body'>
+        <div className='cart_container_body_order'>
       {cartItems.map(item => {
         const totalPrice = item.price.amount * item.quantity
         return (
@@ -87,11 +89,15 @@ useEffect(() => {
           <button onClick={() => removeItem(item.productId)} data-testid="cart-item-remove">Удалить</button>
         </div>
       )})}
+      </div>
+      <div className='cart_container_body_order_total'>
       <div data-testid="cart-total">
         <strong>Итого: {total} ₽</strong>
       </div>
-      <Link to="/checkout" data-testid="cart-checkout">Оформить заказ</Link>
-      <button onClick={clearCart}>Очистить корзину</button>
+      <NavLink to="/checkout" data-testid="cart-checkout" style={{textDecoration: 'none', width:'100%'}}><button className='link-to-item-cart'>Оформить заказ</button></NavLink>
+      <button onClick={clearCart} className='link-to-item-cart-clear'>Очистить корзину</button>
+      </div>
+      </div>
     </div>
   );
 };

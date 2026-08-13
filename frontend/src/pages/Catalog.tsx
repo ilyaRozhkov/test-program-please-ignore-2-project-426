@@ -9,7 +9,6 @@ export const Catalog: React.FC = () => {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Параметры фильтров из URL
   const filters = useMemo(() => ({
     category: searchParams.get('category') || '',
     minPrice: searchParams.get('minPrice') ? Number(searchParams.get('minPrice')) : undefined,
@@ -20,12 +19,10 @@ export const Catalog: React.FC = () => {
     limit: Number(searchParams.get('limit')) || 10,
   }), [searchParams]);
 
-  // Загружаем все товары при монтировании
   useEffect(() => {
     const loadAll = async () => {
       setLoading(true);
       try {
-        // Запрашиваем все товары с большим лимитом (подберите подходящее значение)
         const data = await getProducts({ limit: 1000 });
         setAllProducts(data.items);
       } catch (err) {
@@ -37,7 +34,6 @@ export const Catalog: React.FC = () => {
     loadAll();
   }, []);
 
-  // Применяем фильтры к allProducts
   const filteredProducts = useMemo(() => {
     let result = allProducts;
 
@@ -61,7 +57,6 @@ export const Catalog: React.FC = () => {
     return result;
   }, [allProducts, filters]);
 
-  // Пагинация (на клиенте)
   const totalItems = filteredProducts.length;
   const totalPages = Math.ceil(totalItems / filters.limit);
   const currentPage = Math.min(filters.page, totalPages) || 1;
@@ -76,7 +71,6 @@ export const Catalog: React.FC = () => {
     } else {
       newParams.set(key, String(value));
     }
-    // Если меняется фильтр, сбрасываем страницу на 1
     if (key !== 'page') {
       newParams.set('page', '1');
     }
@@ -93,7 +87,6 @@ export const Catalog: React.FC = () => {
     }
   }, [updateFilter, totalPages]);
 
-  // Получаем список категорий (для селекта) – можно также загрузить отдельно, но пока используем из allProducts
   const categories = useMemo(() => {
     const map = new Map();
     allProducts.forEach(p => {

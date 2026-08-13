@@ -23,28 +23,27 @@ async function main() {
   const catMap = Object.fromEntries((await prisma.category.findMany()).map(c => [c.slug, c.id]));
 
   const products = [
-    // Видеокарты
     { name: 'RTX 4080 Super', slug: 'rtx-4080-super', description: 'Флагман', price: 120000, available: true, categorySlug: 'graphics-card', imageUrl: 'https://www.regard.ru/api/photo/goods/6477347' },
     { name: 'RX 7900 XTX', slug: 'rx-7900-xtx', description: 'Мощная карта', price: 110000, available: false, categorySlug: 'graphics-card', imageUrl: 'https://www.regard.ru/api/photo/goods/1048379' },
-    // Процессоры
+
     { name: 'Intel Core i9-14900K', slug: 'i9-14900k', description: 'Топ Intel', price: 65000, available: true, categorySlug: 'processors', imageUrl: 'https://www.regard.ru/api/photo/goods/6003305' },
     { name: 'AMD Ryzen 9 7950X', slug: 'ryzen-7950x', description: 'Флагман AMD', price: 70000, available: false, categorySlug: 'processors', imageUrl: 'https://www.regard.ru/api/site/cacheimg/goods/5968190/358' },
-    // Материнские платы
+
     { name: 'ASUS ROG Maximus Z790', slug: 'asus-z790', description: 'Плата Intel', price: 35000, available: true, categorySlug: 'motherboards', imageUrl: 'https://www.regard.ru/api/photo/goods/6136188' },
     { name: 'MSI MAG B650', slug: 'msi-b650', description: 'Плата AMD', price: 22000, available: true, categorySlug: 'motherboards', imageUrl: 'https://www.regard.ru/api/photo/goods/1026687' },
-    // ОЗУ
+
     { name: 'Kingston Fury 32GB DDR5', slug: 'kingston-ddr5', description: '2x16GB', price: 18000, available: true, categorySlug: 'ram', imageUrl: 'https://www.regard.ru/api/photo/goods/6128819' },
     { name: 'Corsair Vengeance 16GB DDR4', slug: 'corsair-ddr4', description: '2x8GB', price: 9000, available: true, categorySlug: 'ram', imageUrl: 'https://www.regard.ru/api/photo/goods/6222436' },
-    // Накопители
+
     { name: 'Samsung 990 Pro 1TB NVMe', slug: 'samsung-990', description: 'SSD', price: 12000, available: true, categorySlug: 'storage-drives', imageUrl: 'https://www.regard.ru/api/photo/goods/1014155' },
     { name: 'WD Blue 2TB SATA SSD', slug: 'wd-blue-sata', description: 'SATA SSD', price: 15000, available: true, categorySlug: 'storage-drives', imageUrl: 'https://www.regard.ru/api/photo/goods/5940047' },
-    // БП
+
     { name: 'Corsair RM850x', slug: 'corsair-rm850x', description: '850W золото', price: 16000, available: true, categorySlug: 'power', imageUrl: 'https://www.regard.ru/api/photo/goods/240877' },
     { name: 'Seasonic Focus GX-750', slug: 'seasonic-gx750', description: '750W золото', price: 14000, available: true, categorySlug: 'power', imageUrl: 'https://www.regard.ru/api/photo/goods/6203989' },
-    // Корпуса
+
     { name: 'NZXT H7 Flow', slug: 'nzxt-h7', description: 'Стекло', price: 11000, available: true, categorySlug: 'case', imageUrl: 'https://www.regard.ru/api/photo/goods/6321298' },
     { name: 'Fractal Define 7', slug: 'fractal-define7', description: 'Бесшумный', price: 13000, available: true, categorySlug: 'case', imageUrl: 'https://www.regard.ru/api/photo/goods/182697' },
-    // Охлаждение
+
     { name: 'Noctua NH-D15', slug: 'noctua-nh-d15', description: 'Воздушное', price: 10000, available: true, categorySlug: 'cooling', imageUrl: 'https://www.regard.ru/api/photo/goods/6408352' },
     { name: 'Arctic Liquid Freezer III Pro 360 Black', slug: 'arctic-liquid-freezer-III-pro-360-black', description: 'Жидкостное', price: 22000, available: true, categorySlug: 'cooling', imageUrl: 'https://www.regard.ru/api/photo/goods/6345134' },
   ];
@@ -59,7 +58,6 @@ async function main() {
     });
   }
 
-  // Промо-блоки (берём два доступных товара)
   const available = await prisma.product.findMany({ where: { available: true }, take: 2 });
   if (available.length === 2) {
     await prisma.promoBlock.upsert({

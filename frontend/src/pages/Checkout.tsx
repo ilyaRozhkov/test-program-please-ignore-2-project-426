@@ -4,6 +4,7 @@ import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { getProductsByIds, createOrder } from '../api/client';
 import { Product, CreateOrderRequest } from '../api/types';
+import './pages_style.css'
 
 export const Checkout: React.FC = () => {
   const { items, clearCart, refreshCart } = useCart();
@@ -20,7 +21,7 @@ export const Checkout: React.FC = () => {
 
   useEffect(() => {
     refreshCart();
-  }, [refreshCart]);
+  }, []);
 
   useEffect(() => {
     if (items.length === 0) {
@@ -74,10 +75,10 @@ export const Checkout: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className={'checkout_order'}>
       <h2>Оформление заказа</h2>
-      <form onSubmit={handleSubmit} data-testid="checkout-form">
-        <div>
+      <form onSubmit={handleSubmit} data-testid="checkout-form" className='checkout_form'>
+        <div className='checkout_form_item'>
           <label>Способ получения:</label>
           <select
             value={deliveryMethod}
@@ -88,7 +89,7 @@ export const Checkout: React.FC = () => {
             <option value="pickup">Самовывоз</option>
           </select>
         </div>
-        <div>
+        <div className='checkout_form_item'>
           <label>Имя получателя:</label>
           <input
             type="text"
@@ -98,7 +99,7 @@ export const Checkout: React.FC = () => {
             data-testid="checkout-name"
           />
         </div>
-        <div>
+        <div className='checkout_form_item'>
           <label>Телефон:</label>
           <input
             type="tel"
@@ -109,7 +110,7 @@ export const Checkout: React.FC = () => {
           />
         </div>
         {deliveryMethod === 'delivery' && (
-          <div>
+          <div className='checkout_form_item'>
             <label>Адрес доставки:</label>
             <input
               type="text"
@@ -120,7 +121,7 @@ export const Checkout: React.FC = () => {
             />
           </div>
         )}
-        <div>
+        <div className='checkout_form_item'>
           <strong>Сумма: {total} ₽</strong>
         </div>
         {error && <div style={{ color: 'red' }} data-testid="order-error">{error}</div>}

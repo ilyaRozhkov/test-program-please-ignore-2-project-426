@@ -5,7 +5,6 @@ import { getCategories, getProducts, getProductBySlug } from '../services/catalo
 const router = Router();
 const prisma = new PrismaClient();
 
-// GET /categories
 router.get('/categories', async (req, res) => {
   try {
     const categories = await getCategories();
@@ -16,7 +15,7 @@ router.get('/categories', async (req, res) => {
   }
 });
 
-// GET /products
+
 router.get('/products', async (req, res) => {
   try {
     const params = {
@@ -36,7 +35,6 @@ router.get('/products', async (req, res) => {
   }
 });
 
-// GET /products/:slug
 router.get('/products/:slug', async (req, res) => {
   try {
     const product = await getProductBySlug(req.params.slug);
@@ -51,7 +49,6 @@ router.get('/products/:slug', async (req, res) => {
   }
 });
 
-// POST /products/batch – новый эндпоинт для корзины
 router.post('/products/batch', async (req, res) => {
   console.log('[batch] Received request with body:', req.body);
   try {
@@ -70,7 +67,6 @@ router.post('/products/batch', async (req, res) => {
       return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'ids array cannot be empty' } });
     }
 
-    // Преобразуем в числа
     const numericIds = ids.map(id => Number(id)).filter(id => !isNaN(id) && id > 0);
     if (numericIds.length === 0) {
       return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'No valid product ids provided' } });
@@ -78,7 +74,6 @@ router.post('/products/batch', async (req, res) => {
 
     console.log('[batch] Fetching products with ids:', numericIds);
 
-    // Запрос к БД
     const products = await prisma.product.findMany({
       where: { id: { in: numericIds } },
       include: { category: true },
@@ -86,7 +81,6 @@ router.post('/products/batch', async (req, res) => {
 
     console.log('[batch] Found products:', products.length);
 
-    // Форматируем ответ
     const result = products.map(p => ({
       ...p,
       price: { amount: p.price },
