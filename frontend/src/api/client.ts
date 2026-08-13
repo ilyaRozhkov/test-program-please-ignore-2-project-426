@@ -1,4 +1,13 @@
-import { RegisterRequest, LoginRequest, LoginResponse, User } from './types';
+import {
+  RegisterRequest,
+  LoginRequest,
+  LoginResponse,
+  User,
+  Product,
+  CreateOrderRequest,
+  CreateOrderResponse,
+  Order,
+} from './types';
 
 export async function register(data: RegisterRequest): Promise<User> {
   const res = await fetch('/api/auth/register', {
@@ -45,7 +54,7 @@ export async function getMe(token: string): Promise<User> {
   return res.json();
 }
 
-export async function getCategories() {
+export async function getCategories(): Promise<Category[]> {
   const res = await fetch('/api/catalog/categories');
   if (!res.ok) {
     const err = await res.json();
@@ -54,8 +63,8 @@ export async function getCategories() {
   return res.json();
 }
 
-export async function getProducts(params: any, options?: { signal?: AbortSignal }) {
-  const query = new URLSearchParams(params).toString();
+export async function getProducts(params: ProductListParams, options?: { signal?: AbortSignal }): Promise<ProductListResponse> {
+  const query = new URLSearchParams(params as any).toString();
   const res = await fetch(`/api/catalog/products?${query}`, { signal: options?.signal });
   if (!res.ok) {
     const err = await res.json();
@@ -64,7 +73,7 @@ export async function getProducts(params: any, options?: { signal?: AbortSignal 
   return res.json();
 }
 
-export async function getProductBySlug(slug: string) {
+export async function getProductBySlug(slug: string): Promise<Product> {
   const res = await fetch(`/api/catalog/products/${slug}`);
   if (!res.ok) {
     const err = await res.json();
@@ -73,16 +82,7 @@ export async function getProductBySlug(slug: string) {
   return res.json();
 }
 
-export async function getPromoBlocks() {
-  const res = await fetch('/api/promo');
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error?.message || 'Failed to fetch promo blocks');
-  }
-  return res.json();
-}
-
-export async function getProductsByIds(ids: number[]) {
+export async function getProductsByIds(ids: number[]): Promise<Product[]> {
   const res = await fetch('/api/catalog/products/batch', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -95,7 +95,16 @@ export async function getProductsByIds(ids: number[]) {
   return res.json();
 }
 
-export async function createOrder(data: any, token: string) {
+export async function getPromoBlocks(): Promise<any[]> {
+  const res = await fetch('/api/promo');
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error?.message || 'Failed to fetch promo');
+  }
+  return res.json();
+}
+
+export async function createOrder(data: CreateOrderRequest, token: string): Promise<CreateOrderResponse> {
   const res = await fetch('/api/orders', {
     method: 'POST',
     headers: {
@@ -111,7 +120,7 @@ export async function createOrder(data: any, token: string) {
   return res.json();
 }
 
-export async function getMyOrders(token: string) {
+export async function getMyOrders(token: string): Promise<Order[]> {
   const res = await fetch('/api/orders', {
     headers: { Authorization: `Bearer ${token}` },
   });
