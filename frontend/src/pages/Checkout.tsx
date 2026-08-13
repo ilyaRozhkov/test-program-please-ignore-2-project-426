@@ -27,7 +27,7 @@ export const Checkout: React.FC = () => {
       .then(products => {
         const merged = items.map(item => ({
           ...item,
-          ...products.find(p => p.id === item.productId),
+          ...products.find((p: Product) => p.id === item.productId),
         }));
         setCartDetails(merged);
       })
