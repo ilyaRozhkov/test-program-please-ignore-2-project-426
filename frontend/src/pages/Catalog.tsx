@@ -26,9 +26,9 @@ export const Catalog: React.FC = () => {
   }, []);
 
   useEffect(() => {
+          setLoading(true);
     const controller = new AbortController();
     const load = async () => {
-      setLoading(true);
       try {
         const params: any = {};
         if (filters.category) params.category = filters.category;
