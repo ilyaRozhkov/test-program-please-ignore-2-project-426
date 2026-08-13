@@ -12,13 +12,13 @@ interface CartContextType {
   updateQuantity: (productId: number, quantity: number) => void;
   clearCart: () => void;
   totalItems: number;
+  refreshCart: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>(() => {
-    // Загрузка из localStorage при инициализации
     const stored = localStorage.getItem('cart');
     if (stored) {
       try {
@@ -30,10 +30,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return [];
   });
 
-  // Сохранение в localStorage при каждом изменении items
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(items));
   }, [items]);
+
+  const refreshCart = () => {
+    const stored = localStorage.getItem('cart');
+    if (stored) {
+      try {
+        setItems(JSON.parse(stored));
+      } catch {
+        setItems([]);
+      }
+    } else {
+      setItems([]);
+    }
+  };
 
   const addItem = (productId: number, quantity = 1) => {
     setItems(prev => {
@@ -70,7 +82,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems }}>
+    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems, refreshCart }}>
       {children}
     </CartContext.Provider>
   );
