@@ -29,8 +29,8 @@ export const CatalogCard: React.FC<CatalogCardProps> = ({ data }) => {
                 <div className='container-card-text-bottom'>
                     <div className='container-card-text-bottom-price' data-testid="catalog-item-price">{`${data.price.amount} ₽`}</div>
                     {data.available ? 
-                    <div className='container-card-text-bottom-available'data-testid="catalog-item-availability" data-availability='true'>В наличии</div>
-                     : <div className='container-card-text-bottom-not-available' data-availability='false'>В корзину</div>
+                    <div className='container-card-text-bottom-available' data-testid="catalog-item-availability" data-availability='true'>В наличии</div>
+                     : <div className='container-card-text-bottom-not-available' data-testid="catalog-item-availability" data-availability='false'>Нет в наличии</div>
                      }
                 </div>
                 <div className='link-to-item' onClick={handleAddToCart}>К товару</div>
