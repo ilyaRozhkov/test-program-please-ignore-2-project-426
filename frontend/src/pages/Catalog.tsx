@@ -1,14 +1,13 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { getProducts, getCategories } from '../api/client';
+import { Category, Product } from '../api/types';
 import { CatalogCard } from '../components/CatalogCard';
-
-// ... компоненты Filters и Pagination (как было описано ранее) ...
 
 export const Catalog: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [categories, setCategories] = useState([]);
-  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 10, totalPages: 1 });
 
@@ -61,7 +60,7 @@ export const Catalog: React.FC = () => {
 
   const resetFilters = () => setSearchParams({});
   const changePage = (newPage: number) => updateFilter('page', newPage);
-  console.log('products',products)
+
   return (
     <div className='catalog-container'>
       <aside className='catalog-container-aside'>
