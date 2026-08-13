@@ -27,9 +27,8 @@ export const Catalog: React.FC = () => {
 
   useEffect(() => {
     const controller = new AbortController();
-          setLoading(true);
+    setLoading(true);
     const load = async () => {
-
       try {
         const params: any = {};
         if (filters.category) params.category = filters.category;
@@ -63,64 +62,65 @@ export const Catalog: React.FC = () => {
   const changePage = (newPage: number) => updateFilter('page', newPage);
 
   return (
-    <div className='catalog-container' data-testid='catalog-list'>
+    <div className='catalog-container'>
       <aside className='catalog-container-aside'>
         <div data-testid="catalog-filters" className='catalog-filters'>
           <div className='search-container'>
             <p className='search-container-text'>Категория</p>
             <div className='input-field'>
-          <select data-testid="filter-category" className='catalog_input' value={filters.category} onChange={e => updateFilter('category', e.target.value)} style={{width: '100%'}}>
-            <option value="">-</option>
-            {categories.map((c: any) => <option key={c.id} value={c.slug}>{c.name}</option>)}
-          </select>
+              <select data-testid="filter-category" className='catalog_input' value={filters.category} onChange={e => updateFilter('category', e.target.value)} style={{width: '100%'}}>
+                <option value="">-</option>
+                {categories.map((c: any) => <option key={c.id} value={c.slug}>{c.name}</option>)}
+              </select>
+            </div>
           </div>
-          </div>
-                              <div className='search-container'>
+          <div className='search-container'>
             <p className='search-container-text'>Название</p>
             <div className='input-field'>
-          <input data-testid="filter-search" style={{width: '87%'}} className='catalog_input' type="text" value={filters.search || ''} placeholder='Например, RTX' onChange={e => updateFilter('search', e.target.value)} />
+              <input data-testid="filter-search" style={{width: '87%'}} className='catalog_input' type="text" value={filters.search || ''} placeholder='Например, RTX' onChange={e => updateFilter('search', e.target.value)} />
+            </div>
           </div>
-          </div>
-                    <div className='search-container'>
+          <div className='search-container'>
             <p className='search-container-text'>Цена от, ₽</p>
             <div className='input-field'>
-          <input data-testid="filter-price-min" style={{width: '87%'}} className='catalog_input' type="number" value={filters.minPrice || ''} placeholder='0' onChange={e => updateFilter('minPrice', e.target.value ? Number(e.target.value) : undefined)} />
-          </div>
+              <input data-testid="filter-price-min" style={{width: '87%'}} className='catalog_input' type="number" value={filters.minPrice || ''} placeholder='0' onChange={e => updateFilter('minPrice', e.target.value ? Number(e.target.value) : undefined)} />
             </div>
-                    <div className='search-container'>
-             <p className='search-container-text'>Цена до, ₽</p>
-             <div className='input-field'>
-          <input data-testid="filter-price-max" type="number" style={{width: '87%'}} className='catalog_input' value={filters.maxPrice || ''} placeholder='200 000' onChange={e => updateFilter('maxPrice', e.target.value ? Number(e.target.value) : undefined)} />
           </div>
+          <div className='search-container'>
+            <p className='search-container-text'>Цена до, ₽</p>
+            <div className='input-field'>
+              <input data-testid="filter-price-max" type="number" style={{width: '87%'}} className='catalog_input' value={filters.maxPrice || ''} placeholder='200 000' onChange={e => updateFilter('maxPrice', e.target.value ? Number(e.target.value) : undefined)} />
+            </div>
           </div>
-          <label className='search-container-text' style={{marginTop: '6px'}}><input data-testid="filter-available" type="checkbox" checked={filters.available || false} onChange={e => updateFilter('available', e.target.checked)} /> Только в наличии</label>
-
+          <label className='search-container-text' style={{marginTop: '6px'}}>
+            <input data-testid="filter-available" type="checkbox" checked={filters.available || false} onChange={e => updateFilter('available', e.target.checked)} /> Только в наличии
+          </label>
           <button data-testid="filter-reset" onClick={resetFilters} className='button-reset'>Сбросить</button>
         </div>
       </aside>
       <main style={{ flex: 3 }}>
         {loading && <p>Загрузка...</p>}
         {!loading && products.length === 0 && <div data-testid="catalog-empty">Ничего не найдено</div>}
-        {!loading && products.length > 0 && (<>
-        <div className='catalog-data-container'>
-          <div className='catalog-data-title'>Комплектующие для ПК</div>
-          <div className='catalog-data-sub-title'>Видеокарты, процессоры и материнские платы - с фильтрами по категориям, цене и наличию.</div>
-          <div className='catalog-data-length'>{
-            `Найдено товаров: ${products?.length}`
-            }</div>
-
-            <div className='catalog-data-card-container'>
-              {products.map((p: any) => (
-                <CatalogCard data={p} />
-              ))}
+        {!loading && products.length > 0 && (
+          <>
+            <div className='catalog-data-container' data-testid="catalog-list">
+              <div className='catalog-data-title'>Комплектующие для ПК</div>
+              <div className='catalog-data-sub-title'>Видеокарты, процессоры и материнские платы - с фильтрами по категориям, цене и наличию.</div>
+              <div className='catalog-data-length'>
+                {`Найдено товаров: ${products.length}`}
+              </div>
+              <div className='catalog-data-card-container'>
+                {products.map((p: any) => (
+                  <CatalogCard key={p.id} data={p} />
+                ))}
+              </div>
             </div>
-        </div>
-        <div data-testid="catalog-pagination">
-          <button data-testid="catalog-page-prev" disabled={pagination.page <= 1} onClick={() => changePage(pagination.page - 1)}>Назад</button>
-          <span>Страница {pagination.page} из {pagination.totalPages}</span>
-          <button data-testid="catalog-page-next" disabled={pagination.page >= pagination.totalPages} onClick={() => changePage(pagination.page + 1)}>Вперёд</button>
-        </div>
-        </>
+            <div data-testid="catalog-pagination">
+              <button data-testid="catalog-page-prev" disabled={pagination.page <= 1} onClick={() => changePage(pagination.page - 1)}>Назад</button>
+              <span>Страница {pagination.page} из {pagination.totalPages}</span>
+              <button data-testid="catalog-page-next" disabled={pagination.page >= pagination.totalPages} onClick={() => changePage(pagination.page + 1)}>Вперёд</button>
+            </div>
+          </>
         )}
       </main>
     </div>
