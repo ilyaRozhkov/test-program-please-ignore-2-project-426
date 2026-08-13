@@ -1,8 +1,12 @@
-import { Link } from 'react-router-dom'
-import './component_style.css'
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Product } from '../api/types';
 
-export const CatalogCard = ({data}) => {
-    console.log('data', data)
+interface CatalogCardProps {
+  data: Product;
+}
+
+export const CatalogCard: React.FC<CatalogCardProps> = ({ data }) => {
 
     return (
         <div className="container-card">
