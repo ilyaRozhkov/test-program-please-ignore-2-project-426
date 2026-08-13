@@ -4,21 +4,21 @@
  */
 
 
-export type paths = Record<string, never>;
+export type paths = Record<string, any>;
 
-export type webhooks = Record<string, never>;
+export type webhooks = Record<string, any>;
 
 export interface components {
-  schemas: never;
-  responses: never;
-  parameters: never;
-  requestBodies: never;
-  headers: never;
-  pathItems: never;
+  schemas: any;
+  responses: any;
+  parameters: any;
+  requestBodies: any;
+  headers: any;
+  pathItems: any;
 }
 
-export type $defs = Record<string, never>;
+export type $defs = Record<string, any>;
 
-export type external = Record<string, never>;
+export type external = Record<string, any>;
 
-export type operations = Record<string, never>;
+export type operations = Record<string, any>;
