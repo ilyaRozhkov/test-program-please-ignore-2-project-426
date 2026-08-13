@@ -26,9 +26,10 @@ export const Catalog: React.FC = () => {
   }, []);
 
   useEffect(() => {
-          setLoading(true);
     const controller = new AbortController();
+          setLoading(true);
     const load = async () => {
+
       try {
         const params: any = {};
         if (filters.category) params.category = filters.category;
@@ -100,6 +101,7 @@ export const Catalog: React.FC = () => {
       <main style={{ flex: 3 }}>
         {loading && <p>Загрузка...</p>}
         {!loading && products.length === 0 && <div data-testid="catalog-empty">Ничего не найдено</div>}
+        {!loading && products.length > 0 && (<>
         <div className='catalog-data-container'>
           <div className='catalog-data-title'>Комплектующие для ПК</div>
           <div className='catalog-data-sub-title'>Видеокарты, процессоры и материнские платы - с фильтрами по категориям, цене и наличию.</div>
@@ -113,21 +115,13 @@ export const Catalog: React.FC = () => {
               ))}
             </div>
         </div>
-        {/* <div data-testid="catalog-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px,1fr))', gap: '1rem' }}>
-          {products.map((p: any) => (
-            <div key={p.id} data-testid="catalog-item">
-              <Link to={`/product/${p.slug}`} data-testid="catalog-item-name">{p.name}</Link>
-              <div data-testid="catalog-item-price">{p.price.amount} ₽</div>
-              <div data-testid="catalog-item-availability" data-available={p.available}>{p.available ? 'В наличии' : 'Нет в наличии'}</div>
-              {p.imageUrl && <img src={p.imageUrl} alt={p.name} style={{ maxWidth: '100%' }} />}
-            </div>
-          ))}
-        </div> */}
         <div data-testid="catalog-pagination">
           <button data-testid="catalog-page-prev" disabled={pagination.page <= 1} onClick={() => changePage(pagination.page - 1)}>Назад</button>
           <span>Страница {pagination.page} из {pagination.totalPages}</span>
           <button data-testid="catalog-page-next" disabled={pagination.page >= pagination.totalPages} onClick={() => changePage(pagination.page + 1)}>Вперёд</button>
         </div>
+        </>
+        )}
       </main>
     </div>
   );
