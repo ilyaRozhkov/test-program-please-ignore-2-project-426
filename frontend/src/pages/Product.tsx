@@ -24,7 +24,7 @@ export const Product: React.FC = () => {
       alert('Товар добавлен в корзину!');
     }
   };
-
+  console.log('product',product)
   if (loading) return <div>Загрузка...</div>;
   if (!product) return <div>Товар не найден</div>;
 
@@ -34,13 +34,13 @@ export const Product: React.FC = () => {
         <img src={product.imageUrl} alt={product.name} style={{ maxWidth: '400px' }} />
       </div>
       <div className='product_info'>
-        <div className='product_info_title'>{product.name}</div>
+        <div className='product_info_title' data-testid='product-name'>{product.name}</div>
         <div 
         className={`${product.available ? 'product_info_available': 'product_info_not_available'}`}
         >{product.available ? 'В наличии' : 'Нет в наличии'}</div>
-        <div className='product_info_description'>{product.description}</div>
+        <div className='product_info_description' data-testid='product-description'>{product.description}</div>
         <div className='product_info_order'>
-        <div className='product_info_price'>{product.price.amount} ₽</div>
+        <div className='product_info_price' data-testid='product-price'>{product.price.amount} ₽</div>
         <button
         data-testid="product-add-to-cart"
         onClick={handleAddToCart}
