@@ -62,7 +62,7 @@ export const Catalog: React.FC = () => {
   const changePage = (newPage: number) => updateFilter('page', newPage);
 
   return (
-    <div className='catalog-container'>
+    <div className='catalog-container' data-testid='catalog-list'>
       <aside className='catalog-container-aside'>
         <div data-testid="catalog-filters" className='catalog-filters'>
           <div className='search-container'>
