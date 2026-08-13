@@ -1,16 +1,15 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
-import { getProducts, getCategories } from '../api/client';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { getProducts } from '../api/client';
 import { Category, Product } from '../api/types';
 import { CatalogCard } from '../components/CatalogCard';
 
 export const Catalog: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [pagination, setPagination] = useState({ total: 0, page: 1, limit: 10, totalPages: 1 });
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  // Параметры фильтров из URL
   const filters = useMemo(() => ({
     category: searchParams.get('category') || '',
     minPrice: searchParams.get('minPrice') ? Number(searchParams.get('minPrice')) : undefined,
@@ -21,45 +20,89 @@ export const Catalog: React.FC = () => {
     limit: Number(searchParams.get('limit')) || 10,
   }), [searchParams]);
 
+  // Загружаем все товары при монтировании
   useEffect(() => {
-    getCategories().then(setCategories).catch(console.error);
-  }, []);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    setLoading(true);
-    const load = async () => {
+    const loadAll = async () => {
+      setLoading(true);
       try {
-        const params: any = {};
-        if (filters.category) params.category = filters.category;
-        if (filters.minPrice !== undefined) params.minPrice = filters.minPrice;
-        if (filters.maxPrice !== undefined) params.maxPrice = filters.maxPrice;
-        if (filters.available !== undefined) params.available = filters.available;
-        if (filters.search) params.search = filters.search;
-        if (filters.page) params.page = filters.page;
-        if (filters.limit) params.limit = filters.limit;
-        const data = await getProducts(params, { signal: controller.signal });
-        setProducts(data.items);
-        setPagination({ total: data.total, page: data.page, limit: data.limit, totalPages: data.totalPages });
-      } catch (err: any) {
-        if (err.name !== 'AbortError') console.error(err);
+        // Запрашиваем все товары с большим лимитом (подберите подходящее значение)
+        const data = await getProducts({ limit: 1000 });
+        setAllProducts(data.items);
+      } catch (err) {
+        console.error('Failed to load products:', err);
       } finally {
         setLoading(false);
       }
     };
-    const timer = setTimeout(load, 300);
-    return () => { clearTimeout(timer); controller.abort(); };
-  }, [filters]);
+    loadAll();
+  }, []);
 
-  const updateFilter = (key: string, value: any) => {
+  // Применяем фильтры к allProducts
+  const filteredProducts = useMemo(() => {
+    let result = allProducts;
+
+    if (filters.category) {
+      result = result.filter(p => p.category.slug === filters.category);
+    }
+    if (filters.minPrice !== undefined) {
+      result = result.filter(p => p.price.amount >= filters.minPrice!);
+    }
+    if (filters.maxPrice !== undefined) {
+      result = result.filter(p => p.price.amount <= filters.maxPrice!);
+    }
+    if (filters.available !== undefined) {
+      result = result.filter(p => p.available === filters.available);
+    }
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      result = result.filter(p => p.name.toLowerCase().includes(searchLower));
+    }
+
+    return result;
+  }, [allProducts, filters]);
+
+  // Пагинация (на клиенте)
+  const totalItems = filteredProducts.length;
+  const totalPages = Math.ceil(totalItems / filters.limit);
+  const currentPage = Math.min(filters.page, totalPages) || 1;
+  const startIndex = (currentPage - 1) * filters.limit;
+  const endIndex = Math.min(startIndex + filters.limit, totalItems);
+  const currentProducts = filteredProducts.slice(startIndex, endIndex);
+
+  const updateFilter = useCallback((key: string, value: any) => {
     const newParams = new URLSearchParams(searchParams);
-    if (value === '' || value === undefined || value === false) newParams.delete(key);
-    else newParams.set(key, String(value));
+    if (value === '' || value === undefined || value === false) {
+      newParams.delete(key);
+    } else {
+      newParams.set(key, String(value));
+    }
+    // Если меняется фильтр, сбрасываем страницу на 1
+    if (key !== 'page') {
+      newParams.set('page', '1');
+    }
     setSearchParams(newParams);
-  };
+  }, [searchParams, setSearchParams]);
 
-  const resetFilters = () => setSearchParams({});
-  const changePage = (newPage: number) => updateFilter('page', newPage);
+  const resetFilters = useCallback(() => {
+    setSearchParams({});
+  }, [setSearchParams]);
+
+  const changePage = useCallback((newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      updateFilter('page', newPage);
+    }
+  }, [updateFilter, totalPages]);
+
+  // Получаем список категорий (для селекта) – можно также загрузить отдельно, но пока используем из allProducts
+  const categories = useMemo(() => {
+    const map = new Map();
+    allProducts.forEach(p => {
+      if (!map.has(p.category.slug)) {
+        map.set(p.category.slug, p.category);
+      }
+    });
+    return Array.from(map.values());
+  }, [allProducts]);
 
   return (
     <div className='catalog-container'>
@@ -68,57 +111,110 @@ export const Catalog: React.FC = () => {
           <div className='search-container'>
             <p className='search-container-text'>Категория</p>
             <div className='input-field'>
-              <select data-testid="filter-category" className='catalog_input' value={filters.category} onChange={e => updateFilter('category', e.target.value)} style={{width: '100%'}}>
+              <select
+                data-testid="filter-category"
+                className='catalog_input'
+                value={filters.category}
+                onChange={e => updateFilter('category', e.target.value)}
+                style={{width: '100%'}}
+              >
                 <option value="">-</option>
-                {categories.map((c: any) => <option key={c.id} value={c.slug}>{c.name}</option>)}
+                {categories.map((c) => (
+                  <option key={c.id} value={c.slug}>{c.name}</option>
+                ))}
               </select>
             </div>
           </div>
           <div className='search-container'>
             <p className='search-container-text'>Название</p>
             <div className='input-field'>
-              <input data-testid="filter-search" style={{width: '87%'}} className='catalog_input' type="text" value={filters.search || ''} placeholder='Например, RTX' onChange={e => updateFilter('search', e.target.value)} />
+              <input
+                data-testid="filter-search"
+                style={{width: '87%'}}
+                className='catalog_input'
+                type="text"
+                value={filters.search || ''}
+                placeholder='Например, RTX'
+                onChange={e => updateFilter('search', e.target.value)}
+              />
             </div>
           </div>
           <div className='search-container'>
             <p className='search-container-text'>Цена от, ₽</p>
             <div className='input-field'>
-              <input data-testid="filter-price-min" style={{width: '87%'}} className='catalog_input' type="number" value={filters.minPrice || ''} placeholder='0' onChange={e => updateFilter('minPrice', e.target.value ? Number(e.target.value) : undefined)} />
+              <input
+                data-testid="filter-price-min"
+                style={{width: '87%'}}
+                className='catalog_input'
+                type="number"
+                value={filters.minPrice || ''}
+                placeholder='0'
+                onChange={e => updateFilter('minPrice', e.target.value ? Number(e.target.value) : undefined)}
+              />
             </div>
           </div>
           <div className='search-container'>
             <p className='search-container-text'>Цена до, ₽</p>
             <div className='input-field'>
-              <input data-testid="filter-price-max" type="number" style={{width: '87%'}} className='catalog_input' value={filters.maxPrice || ''} placeholder='200 000' onChange={e => updateFilter('maxPrice', e.target.value ? Number(e.target.value) : undefined)} />
+              <input
+                data-testid="filter-price-max"
+                type="number"
+                style={{width: '87%'}}
+                className='catalog_input'
+                value={filters.maxPrice || ''}
+                placeholder='200 000'
+                onChange={e => updateFilter('maxPrice', e.target.value ? Number(e.target.value) : undefined)}
+              />
             </div>
           </div>
           <label className='search-container-text' style={{marginTop: '6px'}}>
-            <input data-testid="filter-available" type="checkbox" checked={filters.available || false} onChange={e => updateFilter('available', e.target.checked)} /> Только в наличии
+            <input
+              data-testid="filter-available"
+              type="checkbox"
+              checked={filters.available || false}
+              onChange={e => updateFilter('available', e.target.checked)}
+            /> Только в наличии
           </label>
           <button data-testid="filter-reset" onClick={resetFilters} className='button-reset'>Сбросить</button>
         </div>
       </aside>
       <main style={{ flex: 3 }}>
         {loading && <p>Загрузка...</p>}
-        {!loading && products.length === 0 && <div data-testid="catalog-empty">Ничего не найдено</div>}
-        {!loading && products.length > 0 && (
+        {!loading && totalItems === 0 && (
+          <div data-testid="catalog-empty">Ничего не найдено</div>
+        )}
+        {!loading && totalItems > 0 && (
           <>
             <div className='catalog-data-container' data-testid="catalog-list">
               <div className='catalog-data-title'>Комплектующие для ПК</div>
-              <div className='catalog-data-sub-title'>Видеокарты, процессоры и материнские платы - с фильтрами по категориям, цене и наличию.</div>
+              <div className='catalog-data-sub-title'>
+                Видеокарты, процессоры и материнские платы - с фильтрами по категориям, цене и наличию.
+              </div>
               <div className='catalog-data-length'>
-                {`Найдено товаров: ${products.length}`}
+                {`Найдено товаров: ${totalItems}`}
               </div>
               <div className='catalog-data-card-container'>
-                {products.map((p: any) => (
+                {currentProducts.map((p) => (
                   <CatalogCard key={p.id} data={p} />
                 ))}
               </div>
             </div>
             <div data-testid="catalog-pagination">
-              <button data-testid="catalog-page-prev" disabled={pagination.page <= 1} onClick={() => changePage(pagination.page - 1)}>Назад</button>
-              <span>Страница {pagination.page} из {pagination.totalPages}</span>
-              <button data-testid="catalog-page-next" disabled={pagination.page >= pagination.totalPages} onClick={() => changePage(pagination.page + 1)}>Вперёд</button>
+              <button
+                data-testid="catalog-page-prev"
+                disabled={currentPage <= 1}
+                onClick={() => changePage(currentPage - 1)}
+              >
+                Назад
+              </button>
+              <span>Страница {currentPage} из {totalPages}</span>
+              <button
+                data-testid="catalog-page-next"
+                disabled={currentPage >= totalPages}
+                onClick={() => changePage(currentPage + 1)}
+              >
+                Вперёд
+              </button>
             </div>
           </>
         )}
