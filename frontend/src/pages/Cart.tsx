@@ -21,7 +21,7 @@ export const Cart: React.FC = () => {
 
 useEffect(() => {
   refreshCart();
-}, [refreshCart]);
+}, []);
 
   useEffect(() => {
     if (items.length === 0) {
