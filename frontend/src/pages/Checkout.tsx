@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { getProductsByIds, createOrder } from '../api/client';
+import { Product, CreateOrderRequest } from '../api/types';
 
 export const Checkout: React.FC = () => {
   const { items, clearCart } = useCart();
@@ -24,17 +25,17 @@ export const Checkout: React.FC = () => {
     }
     const ids = items.map(i => i.productId);
     getProductsByIds(ids)
-      .then(products => {
+      .then((products: Product[]) => {
         const merged = items.map(item => ({
           ...item,
-          ...products.find((p: Product) => p.id === item.productId),
+          ...products.find(p => p.id === item.productId),
         }));
         setCartDetails(merged);
       })
       .catch(console.error);
   }, [items, navigate]);
 
-  const total = cartDetails.reduce((sum, item) => sum + item.price.amount * item.quantity, 0);
+  const total = cartDetails.reduce((sum, item) => sum + (item.price?.amount || 0) * item.quantity, 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,14 +43,14 @@ export const Checkout: React.FC = () => {
     setLoading(true);
 
     try {
-      const orderData = {
+      const orderData: CreateOrderRequest = {
         items: items.map(i => ({ productId: i.productId, quantity: i.quantity })),
         deliveryMethod,
         recipientName,
         phone,
         address: deliveryMethod === 'delivery' ? address : undefined,
       };
-      const result = await createOrder(orderData, token!);
+      await createOrder(orderData, token!);
       clearCart();
       navigate('/account', { state: { message: 'Заказ успешно оформлен!' } });
     } catch (err: any) {
