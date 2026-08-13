@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { login } from '../api/client';
+import { LoginRequest } from '../api/types';
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -15,7 +16,8 @@ export const Login: React.FC = () => {
     e.preventDefault();
     setError('');
     try {
-      const { token, user } = await login({ email, password });
+      const data: LoginRequest = { email, password };
+      const { token, user } = await login(data);
       authLogin(token, user);
       navigate('/');
     } catch (err: any) {
