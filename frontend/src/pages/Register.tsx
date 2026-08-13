@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { register } from '../api/client';
+import { RegisterRequest } from '../api/types';
 
 export const Register: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -12,7 +13,8 @@ export const Register: React.FC = () => {
     e.preventDefault();
     setError('');
     try {
-      await register({ email, password });
+      const data: RegisterRequest = { email, password };
+      await register(data);
       navigate('/login', { state: { message: 'Регистрация успешна, войдите' } });
     } catch (err: any) {
       setError(err.message);
