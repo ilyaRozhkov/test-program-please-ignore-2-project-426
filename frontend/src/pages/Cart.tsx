@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { getProductsByIds } from '../api/client';
+import { Product } from '../api/types';
 
 interface CartItemWithDetails {
   productId: number;
@@ -27,9 +28,9 @@ export const Cart: React.FC = () => {
 
     const ids = items.map(i => i.productId);
     getProductsByIds(ids)
-      .then(products => {
+      .then((products: Product[]) => {
         const merged = items.map(item => {
-          const product = products.find((p: Product) => p.id === item.productId);
+          const product = products.find(p => p.id === item.productId);
           return {
             productId: item.productId,
             quantity: item.quantity,
@@ -58,7 +59,7 @@ export const Cart: React.FC = () => {
       </div>
     );
   }
-  console.log('cartItems',cartItems)
+
   return (
     <div className='cart_container'>
       <h2>Корзина</h2>
