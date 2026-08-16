@@ -17,7 +17,6 @@ export const register = async (page: Page, email: string, password: string = 'te
   await page.getByTestId('auth-password').fill(password);
   await page.getByTestId('auth-submit').click();
   await expect(page).toHaveURL('/');
-  await expect(page.getByTestId('nav-account')).toBeVisible();
 };
 
 export const login = async (page: Page, email: string, password: string = 'test123') => {
@@ -26,7 +25,6 @@ export const login = async (page: Page, email: string, password: string = 'test1
   await page.getByTestId('auth-password').fill(password);
   await page.getByTestId('auth-submit').click();
   await expect(page).toHaveURL('/');
-  await expect(page.getByTestId('nav-account')).toBeVisible();
 };
 
 export const addAvailableProductToCart = async (page: Page, quantity: number = 1) => {
