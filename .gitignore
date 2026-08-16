@@ -13,5 +13,4 @@ frontend/dist/
 !.env.example
 
 backend/src/validation/
-frontend/src/api/types.generated.ts
 
