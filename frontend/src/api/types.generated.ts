@@ -93,7 +93,8 @@ export interface components {
       /** Format: int32 */
       userId: number;
       items: components["schemas"]["OrderItem"][];
-      total: components["schemas"]["Money"];
+      /** Format: int32 */
+      total: number;
       status: string;
       deliveryMethod: string;
       recipientName: string;
