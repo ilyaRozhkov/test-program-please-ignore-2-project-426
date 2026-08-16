@@ -91,7 +91,7 @@ model Order {
   id: int32;
   userId: int32;
   items: OrderItem[];
-  total: Money;
+  total: int32;
   status: string;
   deliveryMethod: string;
   recipientName: string;
