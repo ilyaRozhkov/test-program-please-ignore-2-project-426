@@ -13,15 +13,12 @@ export const OrderSuccess: React.FC = () => {
       navigate('/');
       return;
     }
-    // Очищаем корзину после отображения заказа
     clearCart();
   }, [order, navigate, clearCart]);
 
   if (!order) {
     return null;
   }
-
-  const total = order.items.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0);
 
   return (
     <div data-testid="order-success">
@@ -31,12 +28,12 @@ export const OrderSuccess: React.FC = () => {
         <h3>Состав заказа</h3>
         {order.items.map((item: any) => (
           <div key={item.id}>
-            {item.name} × {item.quantity} = {item.price * item.quantity} ₽
+            {item.name} × {item.quantity} = {item.price.amount * item.quantity} ₽
           </div>
         ))}
       </div>
       <div data-testid="order-total">
-        <strong>Итого: {total} ₽</strong>
+        <strong>Итого: {order.total} ₽</strong>
       </div>
       <button onClick={() => navigate('/account')}>Перейти в личный кабинет</button>
     </div>
