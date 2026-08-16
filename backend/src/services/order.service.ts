@@ -57,16 +57,32 @@ export async function createOrder(data: CreateOrderInput) {
       },
       include: { items: true },
     });
-    return order;
+
+    return {
+      ...order,
+      items: order.items.map(item => ({
+        ...item,
+        price: { amount: item.price },
+      })),
+      total: order.total, 
+    };
   });
 }
 
 export async function getOrdersByUser(userId: number) {
-  return prisma.order.findMany({
+  const orders = await prisma.order.findMany({
     where: { userId },
     include: { items: true },
     orderBy: { createdAt: 'desc' },
   });
+  return orders.map(order => ({
+    ...order,
+    items: order.items.map(item => ({
+      ...item,
+      price: { amount: item.price },
+    })),
+    total: order.total,
+  }));
 }
 
 export async function getOrderById(id: number, userId: number) {
@@ -75,5 +91,12 @@ export async function getOrderById(id: number, userId: number) {
     include: { items: true },
   });
   if (!order) throw new Error('Order not found');
-  return order;
+  return {
+    ...order,
+    items: order.items.map(item => ({
+      ...item,
+      price: { amount: item.price },
+    })),
+    total: order.total,
+  };
 }
