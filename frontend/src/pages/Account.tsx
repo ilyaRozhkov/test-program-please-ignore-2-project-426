@@ -1,14 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getMyOrders } from '../api/client';
-
-interface Order {
-  id: number;
-  createdAt: string;
-  total: number;
-  status: string;
-  items: { name: string; price: number; quantity: number }[];
-}
+import { Order } from '../api/types';
 
 export const Account: React.FC = () => {
   const { token } = useAuth();
@@ -45,7 +38,7 @@ export const Account: React.FC = () => {
                 <div>
                   {order.items.map((item, idx) => (
                     <div key={idx}>
-                      {item.name} × {item.quantity} = {item.price * item.quantity} ₽
+                      {item.name} × {item.quantity} = {item.price.amount * item.quantity} ₽
                     </div>
                   ))}
                 </div>
