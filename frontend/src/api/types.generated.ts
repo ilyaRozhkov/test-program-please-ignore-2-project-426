@@ -4,21 +4,328 @@
  */
 
 
-export type paths = Record<string, any>;
-
-export type webhooks = Record<string, any>;
-
-export interface components {
-  schemas: any;
-  responses: any;
-  parameters: any;
-  requestBodies: any;
-  headers: any;
-  pathItems: any;
+export interface paths {
+  "/api/auth/login": {
+    post: operations["Auth_login"];
+  };
+  "/api/auth/logout": {
+    post: operations["Auth_logout"];
+  };
+  "/api/auth/me": {
+    get: operations["Auth_getMe"];
+  };
+  "/api/auth/register": {
+    post: operations["Auth_register"];
+  };
+  "/api/catalog/categories": {
+    get: operations["Catalog_getCategories"];
+  };
+  "/api/catalog/products": {
+    get: operations["Catalog_getProducts"];
+  };
+  "/api/catalog/products/batch": {
+    post: operations["Catalog_getProductsByIds"];
+  };
+  "/api/catalog/products/{slug}": {
+    get: operations["Catalog_getProductBySlug"];
+  };
+  "/api/orders": {
+    get: operations["Orders_getMyOrders"];
+    post: operations["Orders_createOrder"];
+  };
+  "/api/orders/{id}": {
+    get: operations["Orders_getOrderById"];
+  };
+  "/api/promo": {
+    get: operations["Promo_getPromoBlocks"];
+  };
 }
 
-export type $defs = Record<string, any>;
+export type webhooks = Record<string, never>;
 
-export type external = Record<string, any>;
+export interface components {
+  schemas: {
+    ApiError: {
+      code: string;
+      message: string;
+      details?: unknown;
+    };
+    Category: {
+      /** Format: int32 */
+      id: number;
+      name: string;
+      slug: string;
+    };
+    CreateOrderRequest: {
+      items: {
+          /** Format: int32 */
+          productId: number;
+          /** Format: int32 */
+          quantity: number;
+        }[];
+      /** @enum {string} */
+      deliveryMethod: "delivery" | "pickup";
+      recipientName: string;
+      phone: string;
+      address?: string;
+    };
+    CreateOrderResponse: {
+      order: components["schemas"]["Order"];
+    };
+    ErrorResponse: {
+      error: components["schemas"]["ApiError"];
+    };
+    LoginRequest: {
+      email: string;
+      password: string;
+    };
+    LoginResponse: {
+      token: string;
+      user: components["schemas"]["User"];
+    };
+    Money: {
+      /** Format: int32 */
+      amount: number;
+    };
+    Order: {
+      /** Format: int32 */
+      id: number;
+      /** Format: int32 */
+      userId: number;
+      items: components["schemas"]["OrderItem"][];
+      total: components["schemas"]["Money"];
+      status: string;
+      deliveryMethod: string;
+      recipientName: string;
+      phone: string;
+      address?: string;
+      createdAt: string;
+    };
+    OrderItem: {
+      /** Format: int32 */
+      productId: number;
+      /** Format: int32 */
+      quantity: number;
+      name: string;
+      price: components["schemas"]["Money"];
+    };
+    Product: {
+      /** Format: int32 */
+      id: number;
+      name: string;
+      slug: string;
+      description?: string;
+      price: components["schemas"]["Money"];
+      imageUrl?: string;
+      available: boolean;
+      category: components["schemas"]["Category"];
+    };
+    ProductListParams: Record<string, never>;
+    ProductListResponse: {
+      items: components["schemas"]["Product"][];
+      /** Format: int32 */
+      total: number;
+      /** Format: int32 */
+      page: number;
+      /** Format: int32 */
+      limit: number;
+      /** Format: int32 */
+      totalPages: number;
+    };
+    PromoBlock: {
+      /** Format: int32 */
+      id: number;
+      title: string;
+      text: string;
+      product: components["schemas"]["Product"];
+    };
+    RegisterRequest: {
+      email: string;
+      password: string;
+    };
+    User: {
+      /** Format: int32 */
+      id: number;
+      email: string;
+      createdAt: string;
+      updatedAt: string;
+    };
+  };
+  responses: never;
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
+}
 
-export type operations = Record<string, any>;
+export type $defs = Record<string, never>;
+
+export type external = Record<string, never>;
+
+export interface operations {
+
+  Auth_login: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["LoginRequest"];
+      };
+    };
+    responses: {
+      /** @description The request has succeeded. */
+      200: {
+        content: {
+          "application/json": components["schemas"]["LoginResponse"] | components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  Auth_logout: {
+    responses: {
+      /** @description The request has succeeded. */
+      200: {
+        content: {
+          "application/json": {
+            message: string;
+          } | components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  Auth_getMe: {
+    responses: {
+      /** @description The request has succeeded. */
+      200: {
+        content: {
+          "application/json": components["schemas"]["User"] | components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  Auth_register: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RegisterRequest"];
+      };
+    };
+    responses: {
+      /** @description The request has succeeded. */
+      200: {
+        content: {
+          "application/json": components["schemas"]["User"] | components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  Catalog_getCategories: {
+    responses: {
+      /** @description The request has succeeded. */
+      200: {
+        content: {
+          "application/json": components["schemas"]["Category"][] | components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  Catalog_getProducts: {
+    parameters: {
+      query: {
+        params: components["schemas"]["ProductListParams"];
+        category?: string;
+        minPrice?: number;
+        maxPrice?: number;
+        available?: boolean;
+        search?: string;
+        page?: number;
+        limit?: number;
+      };
+    };
+    responses: {
+      /** @description The request has succeeded. */
+      200: {
+        content: {
+          "application/json": components["schemas"]["ProductListResponse"] | components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  Catalog_getProductsByIds: {
+    requestBody: {
+      content: {
+        "application/json": number[];
+      };
+    };
+    responses: {
+      /** @description The request has succeeded. */
+      200: {
+        content: {
+          "application/json": components["schemas"]["Product"][] | components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  Catalog_getProductBySlug: {
+    parameters: {
+      path: {
+        slug: string;
+      };
+    };
+    responses: {
+      /** @description The request has succeeded. */
+      200: {
+        content: {
+          "application/json": components["schemas"]["Product"] | components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  Orders_getMyOrders: {
+    responses: {
+      /** @description The request has succeeded. */
+      200: {
+        content: {
+          "application/json": components["schemas"]["Order"][] | components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  Orders_createOrder: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateOrderRequest"];
+      };
+    };
+    responses: {
+      /** @description The request has succeeded. */
+      200: {
+        content: {
+          "application/json": components["schemas"]["CreateOrderResponse"] | components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  Orders_getOrderById: {
+    parameters: {
+      path: {
+        id: number;
+      };
+    };
+    responses: {
+      /** @description The request has succeeded. */
+      200: {
+        content: {
+          "application/json": components["schemas"]["Order"] | components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  Promo_getPromoBlocks: {
+    responses: {
+      /** @description The request has succeeded. */
+      200: {
+        content: {
+          "application/json": components["schemas"]["PromoBlock"][] | components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+}

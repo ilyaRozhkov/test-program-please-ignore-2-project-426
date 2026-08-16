@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { registerUser, loginUser, getUserById } from '../services/auth.service';
 import { authenticate, AuthRequest } from '../middlewares/auth.middleware';
+import { revokeToken } from '../services/auth.service';
 
 const router = Router();
 
@@ -38,8 +39,14 @@ router.post('/login', async (req, res) => {
   }
 });
 
-router.post('/logout', (req, res) => {
-  res.json({ message: 'Logged out' });
+router.post('/logout', authenticate, async (req: AuthRequest, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (token) await revokeToken(token);
+    res.json({ message: 'Logged out' });
+  } catch {
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Logout failed' } });
+  }
 });
 
 router.get('/me', authenticate, async (req: AuthRequest, res) => {

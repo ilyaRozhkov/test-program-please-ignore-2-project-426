@@ -19,7 +19,12 @@ export const CatalogCard: React.FC<CatalogCardProps> = ({ data }) => {
     return (
         <div className="container-card" data-testid="catalog-item">
             <div className='container-card-img'>
-<img src={data.imageUrl} alt={data.name} style={{ maxWidth: '100%', maxHeight: '100%' }} />
+               {data.imageUrl ? (
+<img src={data.imageUrl} alt={data.name} style={{ maxWidth: '100%', maxHeight: '100%' }} />) 
+:
+(<div style={{ width: '100%', height: '100px', background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          Нет изображения
+        </div>)}
 
             </div>
             <div className='container-card-text'>

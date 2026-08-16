@@ -1,20 +1,17 @@
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../db/client';
 import { getCategories, getProducts, getProductBySlug } from '../services/catalog.service';
 
 const router = Router();
-const prisma = new PrismaClient();
 
 router.get('/categories', async (req, res) => {
   try {
     const categories = await getCategories();
     res.json(categories);
-  } catch (error) {
-    console.error('Error fetching categories:', error);
+  } catch {
     res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch categories' } });
   }
 });
-
 
 router.get('/products', async (req, res) => {
   try {
@@ -29,8 +26,7 @@ router.get('/products', async (req, res) => {
     };
     const result = await getProducts(params);
     res.json(result);
-  } catch (error) {
-    console.error('Error fetching products:', error);
+  } catch {
     res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch products' } });
   }
 });
@@ -39,10 +35,9 @@ router.get('/products/:slug', async (req, res) => {
   try {
     const product = await getProductBySlug(req.params.slug);
     res.json(product);
-  } catch (error: any) {
-    console.error('Error fetching product:', error);
-    if (error.message === 'Product not found') {
-      res.status(404).json({ error: { code: 'NOT_FOUND', message: error.message } });
+  } catch (err: any) {
+    if (err.message === 'Product not found') {
+      res.status(404).json({ error: { code: 'NOT_FOUND', message: err.message } });
     } else {
       res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch product' } });
     }
@@ -50,51 +45,19 @@ router.get('/products/:slug', async (req, res) => {
 });
 
 router.post('/products/batch', async (req, res) => {
-  console.log('[batch] Received request with body:', req.body);
   try {
     const { ids } = req.body;
-
-    // Валидация
-    if (!ids) {
-      console.error('[batch] ids is missing');
-      return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'ids is required' } });
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'ids array required' } });
     }
-    if (!Array.isArray(ids)) {
-      console.error('[batch] ids is not an array');
-      return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'ids must be an array' } });
-    }
-    if (ids.length === 0) {
-      return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'ids array cannot be empty' } });
-    }
-
     const numericIds = ids.map(id => Number(id)).filter(id => !isNaN(id) && id > 0);
-    if (numericIds.length === 0) {
-      return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'No valid product ids provided' } });
-    }
-
-    console.log('[batch] Fetching products with ids:', numericIds);
-
     const products = await prisma.product.findMany({
       where: { id: { in: numericIds } },
       include: { category: true },
     });
-
-    console.log('[batch] Found products:', products.length);
-
-    const result = products.map(p => ({
-      ...p,
-      price: { amount: p.price },
-    }));
-
-    res.json(result);
-  } catch (error) {
-    console.error('[batch] Error:', error);
-    res.status(500).json({
-      error: {
-        code: 'INTERNAL_ERROR',
-        message: error instanceof Error ? error.message : 'Failed to fetch products',
-      },
-    });
+    res.json(products.map(p => ({ ...p, price: { amount: p.price } })));
+  } catch {
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch products' } });
   }
 });
 

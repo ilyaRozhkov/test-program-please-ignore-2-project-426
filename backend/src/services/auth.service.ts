@@ -1,9 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
-const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
+import { prisma } from '../db/client';
+import { JWT_SECRET } from '../config/jwt';
 
 export async function registerUser(email: string, password: string) {
   const existing = await prisma.user.findUnique({ where: { email } });
@@ -29,4 +27,12 @@ export async function getUserById(userId: number) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) throw new Error('User not found');
   return { id: user.id, email: user.email, createdAt: user.createdAt.toISOString(), updatedAt: user.updatedAt.toISOString() };
+}
+
+export async function revokeToken(token: string) {
+  const decoded = jwt.verify(token, JWT_SECRET) as { exp: number };
+  const expiresAt = new Date(decoded.exp * 1000);
+  await prisma.revokedToken.create({
+    data: { token, expiresAt }
+  });
 }

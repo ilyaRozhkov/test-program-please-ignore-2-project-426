@@ -24,14 +24,18 @@ export const Product: React.FC = () => {
       alert('Товар добавлен в корзину!');
     }
   };
-  console.log('product',product)
   if (loading) return <div>Загрузка...</div>;
   if (!product) return <div>Товар не найден</div>;
 
   return (
     <div className='product_container'>
       <div className='product_img'>
-        <img src={product.imageUrl} alt={product.name} style={{ maxWidth: '400px' }} />
+        {product.imageUrl ? (
+        <img src={product.imageUrl} alt={product.name} style={{ maxWidth: '400px' }} />) : (
+          <div style={{ width: '400px', height: '200px', background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          Нет изображения
+        </div>
+        )}
       </div>
       <div className='product_info'>
         <div className='product_info_title' data-testid='product-name'>{product.name}</div>

@@ -1,12 +1,12 @@
 import dotenv from 'dotenv';
 dotenv.config();
-import { PrismaClient } from '@prisma/client';
+
+import { prisma } from './db/client';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import app from './app';
 
 const execAsync = promisify(exec);
-const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3000;
 
 async function applyMigrationsAndSeed() {
@@ -26,8 +26,6 @@ async function startServer() {
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   } catch (error) {
     console.error('Startup error:', error);
-    if (error instanceof Error)     console.error('Startup error:', error);
-    else     console.error('Startup error:', error);
     process.exit(1);
   }
 }

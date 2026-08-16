@@ -1,6 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../db/client';
 
 export interface CreateOrderInput {
   userId: number;
@@ -12,49 +10,55 @@ export interface CreateOrderInput {
 }
 
 export async function createOrder(data: CreateOrderInput) {
-  const productIds = data.items.map(i => i.productId);
-  const products = await prisma.product.findMany({
-    where: { id: { in: productIds } },
-  });
+  return prisma.$transaction(async (tx) => {
+    const productIds = data.items.map(i => i.productId);
+    const products = await tx.product.findMany({
+      where: { id: { in: productIds } },
+    });
 
-  const productMap = new Map(products.map(p => [p.id, p]));
-  for (const item of data.items) {
-    const product = productMap.get(item.productId);
-    if (!product) {
-      throw new Error(`Product ${item.productId} not found`);
+    const productMap = new Map(products.map(p => [p.id, p]));
+    const errors: string[] = [];
+    for (const item of data.items) {
+      const product = productMap.get(item.productId);
+      if (!product) {
+        errors.push(`Product ${item.productId} not found`);
+      } else if (!product.available) {
+        errors.push(`Product ${product.name} (ID: ${product.id}) is not available`);
+      } else if (item.quantity < 1) {
+        errors.push(`Invalid quantity ${item.quantity} for product ${product.name}`);
+      }
     }
-    if (!product.available) {
-      throw new Error(`Product ${item.productId} is not available`);
+    if (errors.length > 0) {
+      throw new Error(errors.join('; '));
     }
-  }
 
-  const orderItems = data.items.map(item => {
-    const product = productMap.get(item.productId)!;
-    return {
-      productId: product.id,
-      name: product.name,
-      price: product.price,
-      quantity: item.quantity,
-    };
+    const orderItems = data.items.map(item => {
+      const product = productMap.get(item.productId)!;
+      return {
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        quantity: item.quantity,
+      };
+    });
+
+    const total = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+    const order = await tx.order.create({
+      data: {
+        userId: data.userId,
+        status: 'paid',
+        deliveryMethod: data.deliveryMethod,
+        recipientName: data.recipientName,
+        phone: data.phone,
+        address: data.address,
+        total,
+        items: { create: orderItems },
+      },
+      include: { items: true },
+    });
+    return order;
   });
-
-  const total = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-  const order = await prisma.order.create({
-    data: {
-      userId: data.userId,
-      status: 'paid',
-      deliveryMethod: data.deliveryMethod,
-      recipientName: data.recipientName,
-      phone: data.phone,
-      address: data.address,
-      total,
-      items: { create: orderItems },
-    },
-    include: { items: true },
-  });
-
-  return order;
 }
 
 export async function getOrdersByUser(userId: number) {
@@ -70,8 +74,6 @@ export async function getOrderById(id: number, userId: number) {
     where: { id, userId },
     include: { items: true },
   });
-  if (!order) {
-    throw new Error('Order not found');
-  }
+  if (!order) throw new Error('Order not found');
   return order;
 }

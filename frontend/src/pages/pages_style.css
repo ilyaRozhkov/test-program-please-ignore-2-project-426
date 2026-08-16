@@ -312,3 +312,12 @@ width: 15%;
     border: 1px solid gray;
     border-radius: 8px;
 }
+
+@media (max-width: 768px) {
+  .catalog-container {
+    flex-direction: column;
+  }
+  .catalog-container-aside {
+    width: 100% !important;
+  }
+}
