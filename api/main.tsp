@@ -100,7 +100,10 @@ model Order {
   createdAt: string;
 }
 model CreateOrderRequest {
-  items: { productId: int32; quantity: int32 }[];
+    items: {
+    productId: int32;
+    quantity: int32;
+  }[];
   deliveryMethod: "delivery" | "pickup";
   recipientName: string;
   phone: string;

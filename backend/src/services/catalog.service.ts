@@ -39,6 +39,6 @@ export async function getProductBySlug(slug: string) {
     where: { slug },
     include: { category: true },
   });
-  if (!product) throw new Error('Product not found');
+  if (!product) throw new Error('Товар не найден');
   return { ...product, price: { amount: product.price } };
 }

@@ -14,7 +14,7 @@ router.post('/register', async (req, res) => {
     const user = await registerUser(email, password);
     res.status(201).json(user);
   } catch (err: any) {
-    if (err.message === 'Email already in use') {
+    if (err.message === 'Почта уже используется') {
       res.status(409).json({ error: { code: 'CONFLICT', message: err.message } });
     } else {
       res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Registration failed' } });
@@ -31,7 +31,7 @@ router.post('/login', async (req, res) => {
     const result = await loginUser(email, password);
     res.json(result);
   } catch (err: any) {
-    if (err.message === 'Invalid email or password') {
+    if (err.message === 'Не найден логин или пароль') {
       res.status(401).json({ error: { code: 'UNAUTHORIZED', message: err.message } });
     } else {
       res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Login failed' } });

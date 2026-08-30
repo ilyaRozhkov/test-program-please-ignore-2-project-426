@@ -38,7 +38,7 @@ export const Register: React.FC = () => {
         <input type="password" value={password} onChange={e => setPassword(e.target.value)} data-testid="auth-password" placeholder='Введите пароль' required style={{width: '92%'}} />
         </div>
         {error && <div data-testid="auth-error">{error}</div>}
-        <button type="submit" data-testid="auth-submit" className='login-btn'>Войти</button>
+        <button type="submit" data-testid="auth-submit" className='login-btn'>Зарегистрироваться</button>
       </form>
     </div>
   );

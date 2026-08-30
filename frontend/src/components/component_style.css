@@ -80,7 +80,7 @@ display: flex;
     padding: 4px;
     border: 1px solid;
     border-radius: 4px;
-    background: rgb(255, 127, 148);
+    background: rgb(255, 200, 210);
     color: rgb(255, 0, 0);
 }
 .link-to-item{
@@ -95,6 +95,7 @@ display: flex;
     background: #4cfd87;
     border-radius: 4px;
     margin-top: 8px;
+    cursor: pointer;
 }
 
 .link-to-item-cart{
@@ -109,10 +110,11 @@ display: flex;
     background: #27ff55;
     border-radius: 4px;
     margin-top: 8px;
+    cursor: pointer;
 }
 .link-to-item-cart-clear{
     text-decoration: none;
-    width: 100%;
+    width: 95%;
     color: rgb(75, 75, 75);
     font-size: 18px;
     font-weight: 600;
@@ -122,6 +124,7 @@ display: flex;
     background: #fdfdfd;
     border-radius: 4px;
     margin-top: 8px;
+    cursor: pointer;
 }
 
 .checkout_order{

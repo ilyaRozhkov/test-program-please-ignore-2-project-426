@@ -24,7 +24,7 @@ async function main() {
 
   const products = [
     { name: 'RTX 4080 Super', slug: 'rtx-4080-super', description: 'Флагман', price: 120000, available: true, categorySlug: 'graphics-card', imageUrl: 'https://www.regard.ru/api/photo/goods/6477347' },
-    { name: 'RX 7900 XTX', slug: 'rx-7900-xtx', description: 'Мощная карта', price: 110000, available: false, categorySlug: 'graphics-card', imageUrl: 'https://www.regard.ru/api/photo/goods/1048379' },
+    { name: 'RX 7900 XTX', slug: 'rx-7900-xtx', description: 'Мощная карта', price: 110000, available: true, categorySlug: 'graphics-card', imageUrl: 'https://www.regard.ru/api/photo/goods/1048379' },
 
     { name: 'Intel Core i9-14900K', slug: 'i9-14900k', description: 'Топ Intel', price: 65000, available: true, categorySlug: 'processors', imageUrl: 'https://www.regard.ru/api/photo/goods/6003305' },
     { name: 'AMD Ryzen 9 7950X', slug: 'ryzen-7950x', description: 'Флагман AMD', price: 70000, available: false, categorySlug: 'processors', imageUrl: 'https://www.regard.ru/api/site/cacheimg/goods/5968190/358' },
@@ -45,7 +45,7 @@ async function main() {
     { name: 'Fractal Define 7', slug: 'fractal-define7', description: 'Бесшумный', price: 13000, available: true, categorySlug: 'case', imageUrl: 'https://www.regard.ru/api/photo/goods/182697' },
 
     { name: 'Noctua NH-D15', slug: 'noctua-nh-d15', description: 'Воздушное', price: 10000, available: true, categorySlug: 'cooling', imageUrl: 'https://www.regard.ru/api/photo/goods/6408352' },
-    { name: 'Arctic Liquid Freezer III Pro 360 Black', slug: 'arctic-liquid-freezer-III-pro-360-black', description: 'Жидкостное', price: 22000, available: true, categorySlug: 'cooling', imageUrl: 'https://www.regard.ru/api/photo/goods/6345134' },
+    { name: 'NZXT Kraken Z73', slug: 'nzxt-kraken', description: 'Жидкостное', price: 22000, available: true, categorySlug: 'cooling', imageUrl: 'https://www.regard.ru/api/photo/goods/716078' },
   ];
 
   for (const p of products) {
@@ -53,24 +53,67 @@ async function main() {
     if (!categoryId) continue;
     await prisma.product.upsert({
       where: { slug: p.slug },
-      update: { name: p.name, description: p.description, price: p.price, available: p.available, imageUrl: p.imageUrl, categoryId },
-      create: { name: p.name, slug: p.slug, description: p.description, price: p.price, available: p.available, imageUrl: p.imageUrl, categoryId },
+      update: {
+        name: p.name,
+        description: p.description,
+        price: p.price,
+        available: p.available,
+        imageUrl: p.imageUrl,
+        categoryId,
+      },
+      create: {
+        name: p.name,
+        slug: p.slug,
+        description: p.description,
+        price: p.price,
+        available: p.available,
+        imageUrl: p.imageUrl,
+        categoryId,
+      },
     });
   }
 
-  const available = await prisma.product.findMany({ where: { available: true }, take: 2 });
-  if (available.length === 2) {
+  const promoSlugs = ['rtx-4080-super', 'i9-14900k'];
+  const promoProducts = await prisma.product.findMany({
+    where: {
+      slug: { in: promoSlugs },
+      available: true,
+    },
+  });
+
+  const promoMap: Record<string, { title: string; text: string }> = {
+    'rtx-4080-super': {
+      title: 'Супер-акция на RTX 4080',
+      text: 'Только сейчас самая низкая цена!',
+    },
+    'i9-14900k': {
+      title: 'Лучший процессор для игр',
+      text: 'Intel Core i9-14900K – мощь без компромиссов',
+    },
+  };
+
+  for (const product of promoProducts) {
+    const data = promoMap[product.slug];
+    if (!data) continue;
     await prisma.promoBlock.upsert({
-      where: { productId: available[0].id },
-      update: { title: 'Супер-акция на RTX 4080', text: 'Только сейчас самая низкая цена!' },
-      create: { title: 'Супер-акция на RTX 4080', text: 'Только сейчас самая низкая цена!', productId: available[0].id },
-    });
-    await prisma.promoBlock.upsert({
-      where: { productId: available[1].id },
-      update: { title: 'Лучший процессор для игр', text: 'Intel Core i9-14900K – мощь без компромиссов' },
-      create: { title: 'Лучший процессор для игр', text: 'Intel Core i9-14900K – мощь без компромиссов', productId: available[1].id },
+      where: { productId: product.id },
+      update: { title: data.title, text: data.text },
+      create: {
+        title: data.title,
+        text: data.text,
+        productId: product.id,
+      },
     });
   }
+
+  console.log('✅ Seed completed');
 }
 
-main().catch(e => { console.error(e); process.exit(1); }).finally(() => prisma.$disconnect());
+main()
+  .catch(e => {
+    console.error('Seed failed:', e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

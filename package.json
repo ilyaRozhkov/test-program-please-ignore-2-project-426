@@ -8,7 +8,7 @@
     "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "api:generate": "tsp compile api/main.tsp --emit @typespec/openapi3 --output-dir api/ --options @typespec/openapi3.file-type=yaml",
+    "api:generate": "npx --package @typespec/compiler tsp compile api/main.tsp --emit @typespec/openapi3 --output-dir api/ --options @typespec/openapi3.file-type=yaml",
     "api:generate:all": "npm run api:generate && cd frontend && npm run generate:types",
     "test:e2e": "playwright test"
   },

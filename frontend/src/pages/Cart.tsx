@@ -94,7 +94,7 @@ useEffect(() => {
       <div data-testid="cart-total">
         <strong>Итого: {total} ₽</strong>
       </div>
-      <NavLink to="/checkout" data-testid="cart-checkout" style={{textDecoration: 'none', width:'100%'}}><button className='link-to-item-cart'>Оформить заказ</button></NavLink>
+      <NavLink to="/checkout" data-testid="cart-checkout" style={{textDecoration: 'none', width:'95%'}}><button className='link-to-item-cart'>Оформить заказ</button></NavLink>
       <button onClick={clearCart} className='link-to-item-cart-clear'>Очистить корзину</button>
       </div>
       </div>

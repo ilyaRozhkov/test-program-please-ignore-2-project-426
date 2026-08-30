@@ -8,6 +8,14 @@ test('регистрация и автоматический вход', async ({
   await expect(page.getByTestId('nav-account')).toBeVisible();
 });
 
+test('вход с правильными данными', async ({ page }) => {
+  const email = `login-${Date.now()}@example.com`;
+  await register(page, email);
+  await page.getByTestId('nav-signout').click();
+  await login(page, email);
+  await expect(page.getByTestId('nav-account')).toBeVisible();
+});
+
 test('выход из системы', async ({ page }) => {
   const email = `logout-${Date.now()}@example.com`;
   await register(page, email);

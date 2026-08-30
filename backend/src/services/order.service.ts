@@ -1,5 +1,12 @@
 import { prisma } from '../db/client';
 
+export class OrderError extends Error {
+  constructor(public code: string, message: string) {
+    super(message);
+    Object.setPrototypeOf(this, OrderError.prototype);
+  }
+}
+
 export interface CreateOrderInput {
   userId: number;
   items: { productId: number; quantity: number }[];
@@ -11,25 +18,35 @@ export interface CreateOrderInput {
 
 export async function createOrder(data: CreateOrderInput) {
   return prisma.$transaction(async (tx) => {
+    if (!data.items || data.items.length === 0) {
+      throw new OrderError('VALIDATION_ERROR', 'Cart is empty');
+    }
+
     const productIds = data.items.map(i => i.productId);
     const products = await tx.product.findMany({
       where: { id: { in: productIds } },
     });
 
     const productMap = new Map(products.map(p => [p.id, p]));
+
     const errors: string[] = [];
+
     for (const item of data.items) {
       const product = productMap.get(item.productId);
       if (!product) {
-        errors.push(`Product ${item.productId} not found`);
-      } else if (!product.available) {
-        errors.push(`Product ${product.name} (ID: ${product.id}) is not available`);
-      } else if (item.quantity < 1) {
-        errors.push(`Invalid quantity ${item.quantity} for product ${product.name}`);
+        errors.push(`Product with id ${item.productId} not found`);
+        continue;
+      }
+      if (!product.available) {
+        errors.push(`Product "${product.name}" (id: ${product.id}) is not available`);
+      }
+      if (!Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 999) {
+        errors.push(`Invalid quantity ${item.quantity} for product "${product.name}"`);
       }
     }
+
     if (errors.length > 0) {
-      throw new Error(errors.join('; '));
+      throw new OrderError('BAD_REQUEST', errors.join('; '));
     }
 
     const orderItems = data.items.map(item => {
@@ -64,7 +81,7 @@ export async function createOrder(data: CreateOrderInput) {
         ...item,
         price: { amount: item.price },
       })),
-      total: order.total, 
+      total: order.total,
     };
   });
 }
@@ -90,7 +107,9 @@ export async function getOrderById(id: number, userId: number) {
     where: { id, userId },
     include: { items: true },
   });
-  if (!order) throw new Error('Order not found');
+  if (!order) {
+    throw new OrderError('NOT_FOUND', 'Order not found');
+  }
   return {
     ...order,
     items: order.items.map(item => ({
