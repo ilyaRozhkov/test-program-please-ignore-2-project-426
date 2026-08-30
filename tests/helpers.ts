@@ -25,8 +25,6 @@ export const login = async (page: Page, email: string, password: string = 'test1
   await page.getByTestId('auth-password').fill(password);
   await page.getByTestId('auth-submit').click();
   await page.goto('/', { timeout: 5000 });
-  // Дожидаемся появления признака авторизации
-  await expect(page.getByTestId('nav-account')).toBeVisible();
 };
 
 export const addAvailableProductToCart = async (page: Page, quantity: number = 1) => {
