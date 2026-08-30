@@ -24,7 +24,6 @@ export const login = async (page: Page, email: string, password: string = 'test1
   await page.getByTestId('auth-email').fill(email);
   await page.getByTestId('auth-password').fill(password);
   await page.getByTestId('auth-submit').click();
-  await page.goto('/', { timeout: 5000 });
 };
 
 export const addAvailableProductToCart = async (page: Page, quantity: number = 1) => {
