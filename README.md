@@ -2,7 +2,7 @@
 [![Actions Status](https://github.com/ilyaRozhkov/test-program-please-ignore-2-project-426/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/ilyaRozhkov/test-program-please-ignore-2-project-426/actions)
 
 
-Приложение развёрнуто на Render: https://test-program-please-ignore-2-project-426.onrender.com/
+Приложение развёрнуто на Render: https://test-program-please-ignore-2-project-426.onrender.com/ 
 
 Локальный запуск:
 
