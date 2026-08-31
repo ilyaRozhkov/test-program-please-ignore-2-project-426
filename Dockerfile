@@ -1,4 +1,3 @@
-# ---- Бэкенд ----
 FROM node:20-alpine AS backend-builder
 WORKDIR /app/backend
 RUN apk add --no-cache openssl
@@ -8,15 +7,17 @@ RUN npm ci
 COPY backend/ .
 RUN npm run build
 
-# ---- Фронтенд ----
 FROM node:20-alpine AS frontend-builder
 WORKDIR /app/frontend
+
+ARG VITE_ROLLBAR_ACCESS_TOKEN_FRONTEND
+ENV VITE_ROLLBAR_ACCESS_TOKEN_FRONTEND=$VITE_ROLLBAR_ACCESS_TOKEN_FRONTEND
+
 COPY frontend/package*.json ./
 RUN npm ci
 COPY frontend/ .
 RUN npm run build
 
-# ---- Финальный образ ----
 FROM node:20-alpine
 WORKDIR /app
 RUN apk add --no-cache openssl
