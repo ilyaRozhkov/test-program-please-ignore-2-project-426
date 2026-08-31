@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import Ajv from 'ajv';
-import { schema } from '../validation.ts';
+import { schema } from '../validation';
 
 import { prisma } from '../db/client';
 import { getCategories, getProducts, getProductBySlug, CatalogError } from '../services/catalog.service';
