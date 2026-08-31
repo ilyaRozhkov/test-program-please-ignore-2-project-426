@@ -21,8 +21,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
   const [isLoading, setIsLoading] = useState(true);
 
+  // Проверка валидности токена при монтировании
   useEffect(() => {
-    const verifyToken = async () => {
+    const verify = async () => {
       if (token) {
         try {
           const userData = await getMe(token);
@@ -36,8 +37,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       setIsLoading(false);
     };
-    verifyToken();
-  }, [token]);
+    verify();
+  }, []);
 
   const login = (newToken: string, newUser: User) => {
     setToken(newToken);
@@ -56,20 +57,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('user');
   };
 
-  const value = {
-    user,
-    token,
-    login,
-    logout,
-    isAuthenticated: !!token && !!user,
-    isLoading,
-  };
+  const isAuthenticated = !!token && !!user;
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated, isLoading }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) throw new Error('useAuth must be used within AuthProvider');
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
   return context;
 };

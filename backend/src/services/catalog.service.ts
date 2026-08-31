@@ -1,5 +1,11 @@
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { prisma } from '../db/client';
+
+export class CatalogError extends Error {
+  constructor(public code: string, message: string) {
+    super(message);
+    Object.setPrototypeOf(this, CatalogError.prototype);
+  }
+}
 
 export async function getCategories() {
   return prisma.category.findMany({ orderBy: { name: 'asc' } });
@@ -39,6 +45,8 @@ export async function getProductBySlug(slug: string) {
     where: { slug },
     include: { category: true },
   });
-  if (!product) throw new Error('Товар не найден');
+  if (!product) {
+    throw new CatalogError('NOT_FOUND', 'Product not found');
+  }
   return { ...product, price: { amount: product.price } };
 }

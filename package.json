@@ -9,7 +9,7 @@
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "api:generate": "npx --package @typespec/compiler tsp compile api/main.tsp --emit @typespec/openapi3 --output-dir api/ --options @typespec/openapi3.file-type=yaml",
-    "api:generate:all": "npm run api:generate && cd frontend && npm run generate:types",
+    "api:generate:all": "npm run api:generate && cd backend && npm run generate:validation && cd ../frontend && npm run generate:types",
     "test:e2e": "playwright test"
   },
   "devDependencies": {

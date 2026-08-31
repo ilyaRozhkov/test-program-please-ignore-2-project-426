@@ -1,7 +1,6 @@
 import { Router } from 'express';
-import { registerUser, loginUser, getUserById } from '../services/auth.service';
+import { registerUser, loginUser, getUserById, revokeToken, AuthError } from '../services/auth.service';
 import { authenticate, AuthRequest } from '../middlewares/auth.middleware';
-import { revokeToken } from '../services/auth.service';
 
 const router = Router();
 
@@ -13,12 +12,12 @@ router.post('/register', async (req, res) => {
     }
     const user = await registerUser(email, password);
     res.status(201).json(user);
-  } catch (err: any) {
-    if (err.message === 'Почта уже используется') {
-      res.status(409).json({ error: { code: 'CONFLICT', message: err.message } });
-    } else {
-      res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Registration failed' } });
+  } catch (err) {
+    if (err instanceof AuthError) {
+      const status = err.code === 'CONFLICT' ? 409 : 400;
+      return res.status(status).json({ error: { code: err.code, message: err.message } });
     }
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Registration failed' } });
   }
 });
 
@@ -30,12 +29,11 @@ router.post('/login', async (req, res) => {
     }
     const result = await loginUser(email, password);
     res.json(result);
-  } catch (err: any) {
-    if (err.message === 'Не найден логин или пароль') {
-      res.status(401).json({ error: { code: 'UNAUTHORIZED', message: err.message } });
-    } else {
-      res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Login failed' } });
+  } catch (err) {
+    if (err instanceof AuthError && err.code === 'UNAUTHORIZED') {
+      return res.status(401).json({ error: { code: 'UNAUTHORIZED', message: err.message } });
     }
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Login failed' } });
   }
 });
 
@@ -53,8 +51,11 @@ router.get('/me', authenticate, async (req: AuthRequest, res) => {
   try {
     const user = await getUserById(req.user!.userId);
     res.json(user);
-  } catch (err: any) {
-    res.status(404).json({ error: { code: 'NOT_FOUND', message: 'User not found' } });
+  } catch (err) {
+    if (err instanceof AuthError && err.code === 'NOT_FOUND') {
+      return res.status(404).json({ error: { code: 'NOT_FOUND', message: err.message } });
+    }
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch user' } });
   }
 });
 

@@ -9,7 +9,7 @@
     "seed": "prisma db seed --schema prisma/schema.prisma",
     "postinstall": "prisma generate --schema prisma/schema.prisma",
     "generate": "prisma generate --schema prisma/schema.prisma",
-    "generate:validation": "openapi-box --input ../api/openapi.yaml --output src/validation"
+    "generate:validation": "openapi-box --input ../api/@typespec/openapi3/openapi.yaml --output src/validation"
   },
   "dependencies": {
     "@prisma/client": "^5.10.0",

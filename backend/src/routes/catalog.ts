@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../db/client';
-import { getCategories, getProducts, getProductBySlug } from '../services/catalog.service';
+import { getCategories, getProducts, getProductBySlug, CatalogError } from '../services/catalog.service';
 
 const router = Router();
 
@@ -35,12 +35,12 @@ router.get('/products/:slug', async (req, res) => {
   try {
     const product = await getProductBySlug(req.params.slug);
     res.json(product);
-  } catch (err: any) {
-    if (err.message === 'Product not found') {
-      res.status(404).json({ error: { code: 'NOT_FOUND', message: err.message } });
-    } else {
-      res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch product' } });
+  } catch (err) {
+    if (err instanceof CatalogError && err.code === 'NOT_FOUND') {
+      return res.status(404).json({ error: { code: 'NOT_FOUND', message: err.message } });
     }
+    console.error('Error fetching product:', err);
+    res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } });
   }
 });
 

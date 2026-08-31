@@ -20,10 +20,11 @@ export const register = async (page: Page, email: string, password: string = 'te
 };
 
 export const login = async (page: Page, email: string, password: string = 'test123') => {
-  await page.goto('/login');
-  await page.getByTestId('auth-email').fill(email);
-  await page.getByTestId('auth-password').fill(password);
-  await page.getByTestId('auth-submit').click();
+await page.goto("/", { waitUntil: "domcontentloaded" });
+await page.getByTestId("nav-signin").click();
+await page.getByTestId("auth-email").fill(email);
+await page.getByTestId("auth-password").fill(password);
+await page.getByTestId("auth-submit").click();
 };
 
 export const addAvailableProductToCart = async (page: Page, quantity: number = 1) => {
