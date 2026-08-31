@@ -70,6 +70,9 @@ jobs:
           npm run api:generate
           cd frontend && npm run generate:types
 
+      - name: Generate validation schemas
+        run: npm run generate:validation --prefix backend
+
       - name: Build backend
         run: npm run build --prefix backend
 
@@ -79,13 +82,19 @@ jobs:
       - name: Start backend
         run: |
           npm start --prefix backend &
-          timeout 30s bash -c 'until curl -s http://localhost:3000/api/health | grep -q "status"; do sleep 1; done'
+          for i in {1..30}; do
+            if curl -s http://localhost:3000/api/health | grep -q "status"; then
+              echo "Server is ready"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Server did not start in time"
+          exit 1
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/pcshop?schema=public
-          PORT: 3000
           NODE_ENV: test
           JWT_SECRET: testsecret
-          SESSION_SECRET: testsecret
           ROLLBAR_ACCESS_TOKEN_BACKEND: dummy
           ROLLBAR_ACCESS_TOKEN_FRONTEND: dummy
           VITE_ROLLBAR_ACCESS_TOKEN_FRONTEND: dummy
