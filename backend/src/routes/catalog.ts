@@ -1,7 +1,5 @@
 import { Router } from 'express';
 import Ajv from 'ajv';
-// Импортируем схему из сгенерированного validation.ts
-// Убедитесь, что путь правильный: ../validation или ../validation/validation
 import { schema } from '../validation';
 
 import { prisma } from '../db/client';
@@ -9,24 +7,24 @@ import { getCategories, getProducts, getProductBySlug, CatalogError } from '../s
 
 const router = Router();
 
-// Настройка Ajv с отключённым строгим режимом
 const ajv = new Ajv({
-  coerceTypes: true,          // преобразует строки в числа/булевы
-  removeAdditional: true,     // удаляет лишние поля
-  strict: false,              // отключаем строгий режим → игнорирует неизвестные форматы
+  coerceTypes: true,
+  removeAdditional: true,
+  strict: false, 
 });
 
-// Если вы хотите явно добавить формат int32, можно сделать:
-// ajv.addFormat('int32', true); // true = всегда валиден
-
-// Извлекаем схему для GET /api/catalog/products
 const productsArgsSchema = schema['/api/catalog/products']?.GET?.args;
 if (!productsArgsSchema) {
   throw new Error('Products schema not found in validation');
 }
 const validateProductsQuery = ajv.compile(productsArgsSchema);
 
-// GET /categories
+const getNumber = (value: any): number | undefined => {
+  if (value === undefined || value === null) return undefined;
+  const num = Number(value);
+  return isNaN(num) ? undefined : num;
+};
+
 router.get('/categories', async (req, res) => {
   try {
     const categories = await getCategories();
@@ -36,10 +34,8 @@ router.get('/categories', async (req, res) => {
   }
 });
 
-// GET /products – с валидацией
 router.get('/products', async (req, res) => {
   try {
-    // 1. Валидируем query-параметры
     const valid = validateProductsQuery({ query: req.query });
     if (!valid) {
       const errors = validateProductsQuery.errors?.map(e => e.message).join(', ') || 'Invalid query parameters';
@@ -48,16 +44,15 @@ router.get('/products', async (req, res) => {
       });
     }
 
-    // 2. Извлекаем параметры (после coerceTypes они уже приведены к нужным типам)
     const q = req.query;
     const params = {
-      category: q.category as string,
-      minPrice: q.minPrice as number | undefined,
-      maxPrice: q.maxPrice as number | undefined,
-      available: q.available as boolean | undefined,
-      search: q.search as string,
-      page: q.page as number || 1,
-      limit: Math.min(q.limit as number || 10, 100), // ограничиваем до 100
+      category: typeof q.category === 'string' ? q.category : undefined,
+      minPrice: getNumber(q.minPrice),
+      maxPrice: getNumber(q.maxPrice),
+      available: q.available === 'true' ? true : q.available === 'false' ? false : undefined,
+      search: typeof q.search === 'string' ? q.search : undefined,
+      page: getNumber(q.page) || 1,
+      limit: Math.min(getNumber(q.limit) || 10, 100),
     };
 
     const result = await getProducts(params);
@@ -68,7 +63,6 @@ router.get('/products', async (req, res) => {
   }
 });
 
-// GET /products/:slug
 router.get('/products/:slug', async (req, res) => {
   try {
     const product = await getProductBySlug(req.params.slug);
@@ -82,7 +76,6 @@ router.get('/products/:slug', async (req, res) => {
   }
 });
 
-// POST /products/batch
 router.post('/products/batch', async (req, res) => {
   try {
     const { ids } = req.body;
