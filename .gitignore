@@ -12,5 +12,3 @@ frontend/dist/
 *.env
 !.env.example
 
-backend/src/validation/
-
