@@ -36,7 +36,7 @@ router.get('/categories', async (req, res) => {
 
 router.get('/products', async (req, res) => {
   try {
-    const valid = validateProductsQuery({ query: req.query });
+    const valid = validateProductsQuery({ params: req.query });
     if (!valid) {
       const errors = validateProductsQuery.errors?.map(e => e.message).join(', ') || 'Invalid query parameters';
       return res.status(400).json({
