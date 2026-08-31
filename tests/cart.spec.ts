@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openCatalog, addAvailableProductToCart, openCart, parseAmount } from './helpers';
+import { openCatalog, addAvailableProductToCart, openCart, parseAmount, register } from './helpers';
 
 test('страница товара открывается из каталога', async ({ page }) => {
   await openCatalog(page);
@@ -67,7 +67,11 @@ test('пустая корзина показывает состояние и н�
 
 test('прямой переход на /checkout с пустой корзиной перенаправляет в корзину', async ({ page }) => {
 
-  await page.goto('/cart');
+  const email = `cart-${Date.now()}@example.com`;
+  await register(page, email);
+  await expect(page.getByTestId('nav-account')).toBeVisible();
+
+  await page.getByTestId('nav-cart').click();
   await expect(page.getByTestId('cart-empty')).toBeVisible();
 
   await page.goto('/checkout', { waitUntil: 'domcontentloaded' });
