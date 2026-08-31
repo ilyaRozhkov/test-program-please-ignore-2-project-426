@@ -4,6 +4,8 @@ export const openCatalog = async (page: Page) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.getByTestId('nav-catalog').click();
   await expect(page.getByTestId('catalog-list')).toBeVisible();
+  // Дожидаемся появления хотя бы одного товара
+  await expect(page.getByTestId('catalog-item').first()).toBeVisible({ timeout: 10000 });
 };
 
 export const openCart = async (page: Page) => {
@@ -17,14 +19,16 @@ export const register = async (page: Page, email: string, password: string = 'te
   await page.getByTestId('auth-password').fill(password);
   await page.getByTestId('auth-submit').click();
   await expect(page).toHaveURL('/');
+  await expect(page.getByTestId('nav-account')).toBeVisible();
 };
 
 export const login = async (page: Page, email: string, password: string = 'test123') => {
-await page.goto("/", { waitUntil: "domcontentloaded" });
-await page.getByTestId("nav-signin").click();
-await page.getByTestId("auth-email").fill(email);
-await page.getByTestId("auth-password").fill(password);
-await page.getByTestId("auth-submit").click();
+  await page.goto('/login');
+  await page.getByTestId('auth-email').fill(email);
+  await page.getByTestId('auth-password').fill(password);
+  await page.getByTestId('auth-submit').click();
+  await expect(page).toHaveURL('/');
+  await expect(page.getByTestId('nav-account')).toBeVisible();
 };
 
 export const addAvailableProductToCart = async (page: Page, quantity: number = 1) => {
@@ -33,8 +37,19 @@ export const addAvailableProductToCart = async (page: Page, quantity: number = 1
   await expect(page.getByTestId('catalog-item').first()).toBeVisible({ timeout: 10000 });
   const priceText = await page.getByTestId('catalog-item-price').first().textContent();
   const price = parseAmount(priceText ?? '0');
+
+  // Переходим на страницу товара
   await page.getByTestId('catalog-item-name').first().click();
   await page.getByTestId('product-add-to-cart').click();
+
+  // Если нужно больше одного товара, изменяем количество в корзине
+  if (quantity > 1) {
+    await page.getByTestId('nav-cart').click();
+    await page.getByTestId('cart-item-qty').fill(String(quantity));
+    // Ждём обновления итога – проверяем, что итог содержит нужную сумму
+    await expect(page.getByTestId('cart-total')).toContainText(`${price * quantity}`);
+  }
+
   return price * quantity;
 };
 

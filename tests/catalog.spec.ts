@@ -1,22 +1,28 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 import { openCatalog } from './helpers';
 
-const itemCount = (page: any) => page.getByTestId('catalog-item').count();
-const visibleNames = async (page: any) => {
+// ===== Вспомогательные функции =====
+
+const itemCount = (page: Page) => page.getByTestId('catalog-item').count();
+
+const visibleNames = async (page: Page): Promise<string[]> => {
   const names = await page.getByTestId('catalog-item-name').allTextContents();
-  return names.map((n: string) => n.trim());
+  return names.map(name => name.trim());
 };
-const categoryValues = async (page: any) => {
+
+const categoryValues = async (page: Page): Promise<string[]> => {
   const category = page.getByTestId('filter-category');
   await expect(category.locator('option').nth(1)).toBeAttached();
   const values = await category
     .locator('option')
     .evaluateAll((nodes: HTMLOptionElement[]) =>
-      nodes.map((node) => node.value).filter((v) => v !== '')
+      nodes.map(node => node.value).filter(v => v !== '')
     );
   expect(values.length).toBeGreaterThan(0);
   return values;
 };
+
+// ===== Тесты =====
 
 test('карточка товара содержит название, цену и доступность', async ({ page }) => {
   await openCatalog(page);
@@ -28,6 +34,7 @@ test('карточка товара содержит название, цену 
 
 test('атрибут data-available проставлен корректно', async ({ page }) => {
   await openCatalog(page);
+  await expect(page.getByTestId('catalog-item').first()).toBeVisible();
   const flags = await page
     .getByTestId('catalog-item-availability')
     .evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-available')));
@@ -49,6 +56,7 @@ test('фильтр по категории сужает список', async ({ 
 test('поиск по названию оставляет подходящие товары', async ({ page }) => {
   await openCatalog(page);
   const names = await visibleNames(page);
+  expect(names.length).toBeGreaterThan(0);
   const fragment = names[0].split(' ')[0];
   await page.getByTestId('filter-search').fill(fragment);
   await expect.poll(async () => {
@@ -104,20 +112,62 @@ test('переключение страниц меняет набор карто
   await expect.poll(async () => (await visibleNames(page)).join('|')).toBe(firstPage.join('|'));
 });
 
-test('состояние фильтров сохраняется после перезагрузки и кнопки "назад"', async ({ page }) => {
+test('смена фильтра возвращает на первую страницу', async ({ page }) => {
+  await openCatalog(page);
+  const total = await itemCount(page); // запоминаем общее количество
+  const values = await categoryValues(page);
+  // Применяем фильтр на первой странице
+  await page.getByTestId('filter-category').selectOption(values[0]);
+  // Ждём, что количество товаров изменилось (фильтр применился)
+  await expect.poll(async () => itemCount(page)).toBeLessThan(total);
+  const fromFirstPage = await visibleNames(page);
+  expect(fromFirstPage.length).toBeGreaterThan(0);
+
+  // Переходим на вторую страницу
+  await openCatalog(page); // сбрасываем фильтры, открываем каталог заново
+  await page.getByTestId('catalog-page-next').click();
+  // Ждём, что набор изменился (перешли на вторую страницу)
+  await expect.poll(async () => (await visibleNames(page)).join('|')).not.toBe(
+    (await visibleNames(page)).join('|')
+  );
+
+  // Применяем тот же фильтр – должна открыться первая страница
+  await page.getByTestId('filter-category').selectOption(values[0]);
+  await expect.poll(async () => (await visibleNames(page)).join('|')).toBe(fromFirstPage.join('|'));
+  await expect(page.getByTestId('catalog-empty')).toBeHidden();
+});
+
+test('первая страница остаётся на месте при клике "Назад"', async ({ page }) => {
+  await openCatalog(page);
+  const firstPage = await visibleNames(page);
+  expect(firstPage.length).toBeGreaterThan(0);
+
+  const prev = page.getByTestId('catalog-page-prev');
+  if ((await prev.count()) > 0 && (await prev.isEnabled())) {
+    await prev.click();
+  }
+
+  await expect(page.getByTestId('catalog-empty')).toBeHidden();
+  await expect.poll(async () => (await visibleNames(page)).join('|')).toBe(firstPage.join('|'));
+});
+
+test('состояние каталога сохраняется после перезагрузки и кнопки "назад"', async ({ page }) => {
   await openCatalog(page);
   const total = await itemCount(page);
   const values = await categoryValues(page);
   await page.getByTestId('filter-category').selectOption(values[0]);
+  // Ждём применения фильтра
   await expect.poll(async () => itemCount(page)).toBeLessThan(total);
   const filtered = await visibleNames(page);
 
-  await page.reload();
+  // Перезагрузка
+  await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.getByTestId('catalog-list')).toBeVisible();
   await expect(page.getByTestId('filter-category')).toHaveValue(values[0]);
   await expect.poll(async () => (await visibleNames(page)).join('|')).toBe(filtered.join('|'));
 
-  await page.goBack();
+  // Кнопка "назад"
+  await page.goBack({ waitUntil: 'domcontentloaded' });
   await expect(page.getByTestId('catalog-list')).toBeVisible();
   await expect.poll(async () => itemCount(page)).toBe(total);
 });

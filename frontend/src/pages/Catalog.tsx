@@ -119,24 +119,25 @@ export const Catalog: React.FC = () => {
       </aside>
       <main style={{ flex: 3 }}>
         {loading && <p>Загрузка...</p>}
-        {!loading && pagination.total === 0 && <div data-testid="catalog-empty">Ничего не найдено</div>}
-        {!loading && pagination.total > 0 && (
-          <>
-            <div className='catalog-data-container' data-testid="catalog-list">
-              <div className='catalog-data-title'>Комплектующие для ПК</div>
-              <div className='catalog-data-sub-title'>Видеокарты, процессоры и материнские платы - с фильтрами по категориям, цене и наличию.</div>
-              <div className='catalog-data-length'>Найдено товаров: {pagination.total}</div>
-              <div className='catalog-data-card-container'>
-                {products.map((p) => <CatalogCard key={p.id} data={p} />)}
-              </div>
+        {!loading && products.length === 0 && <div data-testid="catalog-empty">Ничего не найдено</div>}
+        {/* Всегда рендерим catalog-list */}
+        <div data-testid="catalog-list" className='catalog-data-container'>
+          <div className='catalog-data-title'>Комплектующие для ПК</div>
+          <div className='catalog-data-sub-title'>Видеокарты, процессоры и материнские платы - с фильтрами по категориям, цене и наличию.</div>
+          <div className='catalog-data-length'>Найдено товаров: {products.length}</div>
+          {products.length > 0 && (
+            <div className='catalog-data-card-container'>
+              {products.map((p) => <CatalogCard key={p.id} data={p} />)}
             </div>
+          )}
+          {products.length > 0 && (
             <div data-testid="catalog-pagination">
               <button data-testid="catalog-page-prev" disabled={pagination.page <= 1} onClick={() => changePage(pagination.page - 1)}>Назад</button>
               <span>Страница {pagination.page} из {pagination.totalPages}</span>
               <button data-testid="catalog-page-next" disabled={pagination.page >= pagination.totalPages} onClick={() => changePage(pagination.page + 1)}>Вперёд</button>
             </div>
-          </>
-        )}
+          )}
+        </div>
       </main>
     </div>
   );

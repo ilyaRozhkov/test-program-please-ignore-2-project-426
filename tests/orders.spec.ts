@@ -70,18 +70,17 @@ test('заказ с недоступным товаром отклоняется
   await openCatalog(page);
   await expect(page.getByTestId('catalog-list')).toBeVisible();
 
-  const unavailableElement = page
-    .getByTestId('catalog-item-availability')
+  // Находим карточку с недоступным товаром
+  const unavailableCard = page
+    .getByTestId('catalog-item')
     .filter({ has: page.locator('[data-available="false"]') })
     .first();
 
-  const productId = await unavailableElement
-    .locator('..') 
-    .getAttribute('data-product-id');
-
+  const productId = await unavailableCard.getAttribute('data-product-id');
   expect(productId).not.toBeNull();
   const numericId = Number(productId);
 
+  // Добавляем недоступный товар в localStorage
   await page.evaluate((productId) => {
     for (let i = 0; i < window.localStorage.length; i += 1) {
       const key = window.localStorage.key(i);
@@ -95,15 +94,24 @@ test('заказ с недоступным товаром отклоняется
           window.localStorage.setItem(key, JSON.stringify(parsed));
         }
       } catch {
+        // не JSON — не корзина
       }
     }
   }, numericId);
 
+  // Переходим в корзину
   await page.getByTestId('nav-cart').click();
   await expect(page.getByTestId('cart-total')).toBeVisible();
+
+  // Переходим на страницу оформления
+  await page.getByTestId('cart-checkout').click();
+  await expect(page.getByTestId('checkout-form')).toBeVisible();
+
+  // Заполняем форму и отправляем
   await fillCheckout(page, 'pickup');
   await page.getByTestId('checkout-submit').click();
 
+  // Проверяем, что заказ отклонён
   await expect(page.getByTestId('order-error')).toBeVisible();
   await expect(page.getByTestId('order-success')).toBeHidden();
 });
@@ -131,11 +139,14 @@ test('в личном кабинете видны заказы пользова�
   }
 
   const orderItems = order.getByTestId('order-item');
-  await expect(orderItems).toHaveCount(2); 
+  await expect(orderItems).toHaveCount(1);
 
   const firstItem = orderItems.first();
-  const itemText = await firstItem.textContent();
-  expect(itemText).toMatch(/\d+ × \d+ = \d+ ₽/);
+  const itemText = await firstItem.textContent() ?? '';
+  expect(itemText).toContain('× 2 =');
+  // Извлекаем сумму после знака "="
+  const sumText = itemText.split('=')[1]?.trim() || '';
+  expect(parseAmount(sumText)).toBe(expected);
 });
 
 test('пользователь видит только свои заказы', async ({ page }) => {

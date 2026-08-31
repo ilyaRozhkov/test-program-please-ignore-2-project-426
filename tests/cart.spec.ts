@@ -1,5 +1,40 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 import { openCatalog, addAvailableProductToCart, openCart, parseAmount, register } from './helpers';
+
+// ===== Вспомогательная функция для поиска недоступного товара по всем страницам =====
+const findUnavailableIndex = async (page: Page): Promise<number> => {
+  for (let visited = 0; visited < 20; visited += 1) {
+    const index = await page
+      .getByTestId('catalog-item-availability')
+      .evaluateAll((nodes) =>
+        nodes.findIndex((node) => node.getAttribute('data-available') === 'false'),
+      );
+    if (index >= 0) {
+      return index;
+    }
+
+    const next = page.getByTestId('catalog-page-next');
+    if ((await next.count()) === 0 || !(await next.isEnabled())) {
+      return -1;
+    }
+
+    const shown = (await page.getByTestId('catalog-item-name').allTextContents()).join('|');
+    await next.click();
+    try {
+      await expect
+        .poll(
+          async () => (await page.getByTestId('catalog-item-name').allTextContents()).join('|'),
+          { timeout: 5000 },
+        )
+        .not.toBe(shown);
+    } catch {
+      return -1;
+    }
+  }
+  return -1;
+};
+
+// ===== Тесты =====
 
 test('страница товара открывается из каталога', async ({ page }) => {
   await openCatalog(page);
@@ -46,15 +81,14 @@ test('корзина сохраняется после перезагрузки'
 
 test('недоступный товар нельзя добавить в корзину', async ({ page }) => {
   await openCatalog(page);
-  const index = await page
-    .getByTestId('catalog-item-availability')
-    .evaluateAll((nodes) =>
-      nodes.findIndex((node) => node.getAttribute('data-available') === 'false')
-    );
+  // Используем функцию для поиска недоступного товара по всем страницам
+  const index = await findUnavailableIndex(page);
   expect(index, 'в каталоге должен быть недоступный товар').toBeGreaterThanOrEqual(0);
+
   await page.getByTestId('catalog-item-name').nth(index).click();
   await expect(page.getByTestId('product-name')).toBeVisible();
   await expect(page.getByTestId('product-add-to-cart')).toBeDisabled();
+
   await page.getByTestId('nav-cart').click();
   await expect(page.getByTestId('cart-empty')).toBeVisible();
 });
@@ -66,16 +100,19 @@ test('пустая корзина показывает состояние и н�
 });
 
 test('прямой переход на /checkout с пустой корзиной перенаправляет в корзину', async ({ page }) => {
-
+  // 1. Регистрируем и авторизуем пользователя
   const email = `cart-${Date.now()}@example.com`;
   await register(page, email);
   await expect(page.getByTestId('nav-account')).toBeVisible();
 
+  // 2. Убеждаемся, что корзина пуста (заходим в корзину)
   await page.getByTestId('nav-cart').click();
   await expect(page.getByTestId('cart-empty')).toBeVisible();
 
+  // 3. Пытаемся перейти на /checkout напрямую
   await page.goto('/checkout', { waitUntil: 'domcontentloaded' });
 
+  // 4. Должны оказаться на странице корзины с сообщением о пустой корзине
   await expect(page).toHaveURL('/cart');
   await expect(page.getByTestId('cart-empty')).toBeVisible();
 });
