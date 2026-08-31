@@ -37,7 +37,7 @@ export const Account: React.FC = () => {
               {expandedOrder === order.id && (
                 <div>
                   {order.items.map((item, idx) => (
-                    <div key={idx}>
+                    <div key={idx} data-testid="order-item">
                       {item.name} × {item.quantity} = {item.price.amount * item.quantity} ₽
                     </div>
                   ))}

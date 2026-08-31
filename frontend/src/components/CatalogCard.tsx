@@ -17,7 +17,7 @@ export const CatalogCard: React.FC<CatalogCardProps> = ({ data }) => {
     }
   };
     return (
-        <div className="container-card" data-testid="catalog-item">
+        <div className="container-card" data-testid="catalog-item" data-product-id={data.id}>
             <div className='container-card-img'>
                {data.imageUrl ? (
 <img src={data.imageUrl} alt={data.name} style={{ maxWidth: '100%', maxHeight: '100%' }} />) 

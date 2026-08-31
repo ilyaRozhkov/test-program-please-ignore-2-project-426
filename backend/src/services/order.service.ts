@@ -18,30 +18,22 @@ export interface CreateOrderInput {
 
 export async function createOrder(data: CreateOrderInput) {
   return prisma.$transaction(async (tx) => {
+    // 1. Проверяем, что корзина не пуста
     if (!data.items || data.items.length === 0) {
       throw new OrderError('VALIDATION_ERROR', 'Cart is empty');
     }
 
-    const productIds = data.items.map(i => i.productId);
-    const products = await tx.product.findMany({
-      where: { id: { in: productIds } },
-    });
-
-    const productMap = new Map(products.map(p => [p.id, p]));
-
+    // 2. Валидация каждого элемента корзины
     const errors: string[] = [];
 
     for (const item of data.items) {
-      const product = productMap.get(item.productId);
-      if (!product) {
-        errors.push(`Product with id ${item.productId} not found`);
-        continue;
+      // Проверка productId – должно быть целым положительным числом
+      if (!Number.isInteger(item.productId) || item.productId < 1) {
+        errors.push(`Invalid productId: ${item.productId} (must be a positive integer)`);
       }
-      if (!product.available) {
-        errors.push(`Product "${product.name}" (id: ${product.id}) is not available`);
-      }
+      // Проверка quantity – целое положительное, не больше 999
       if (!Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 999) {
-        errors.push(`Invalid quantity ${item.quantity} for product "${product.name}"`);
+        errors.push(`Invalid quantity ${item.quantity} for product ${item.productId}`);
       }
     }
 
@@ -49,6 +41,29 @@ export async function createOrder(data: CreateOrderInput) {
       throw new OrderError('BAD_REQUEST', errors.join('; '));
     }
 
+    // 3. Получаем товары из базы
+    const productIds = data.items.map(i => i.productId);
+    const products = await tx.product.findMany({
+      where: { id: { in: productIds } },
+    });
+
+    const productMap = new Map(products.map(p => [p.id, p]));
+
+    // 4. Проверяем доступность и наличие
+    for (const item of data.items) {
+      const product = productMap.get(item.productId);
+      if (!product) {
+        errors.push(`Product with id ${item.productId} not found`);
+      } else if (!product.available) {
+        errors.push(`Product "${product.name}" (id: ${product.id}) is not available`);
+      }
+    }
+
+    if (errors.length > 0) {
+      throw new OrderError('BAD_REQUEST', errors.join('; '));
+    }
+
+    // 5. Формируем позиции заказа
     const orderItems = data.items.map(item => {
       const product = productMap.get(item.productId)!;
       return {
@@ -59,8 +74,10 @@ export async function createOrder(data: CreateOrderInput) {
       };
     });
 
+    // 6. Считаем итог
     const total = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
+    // 7. Создаём заказ
     const order = await tx.order.create({
       data: {
         userId: data.userId,

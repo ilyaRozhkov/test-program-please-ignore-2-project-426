@@ -54,10 +54,7 @@ test('недоступный товар нельзя добавить в кор�
   expect(index, 'в каталоге должен быть недоступный товар').toBeGreaterThanOrEqual(0);
   await page.getByTestId('catalog-item-name').nth(index).click();
   await expect(page.getByTestId('product-name')).toBeVisible();
-  const addBtn = page.getByTestId('product-add-to-cart');
-  if ((await addBtn.count()) > 0) {
-    await expect(addBtn).toBeDisabled();
-  }
+  await expect(page.getByTestId('product-add-to-cart')).toBeDisabled();
   await page.getByTestId('nav-cart').click();
   await expect(page.getByTestId('cart-empty')).toBeVisible();
 });
@@ -65,8 +62,16 @@ test('недоступный товар нельзя добавить в кор�
 test('пустая корзина показывает состояние и не даёт оформить заказ', async ({ page }) => {
   await page.goto('/cart');
   await expect(page.getByTestId('cart-empty')).toBeVisible();
-  const checkout = page.getByTestId('cart-checkout');
-  if ((await checkout.count()) > 0) {
-    await expect(checkout).toBeDisabled();
-  }
+  await expect(page.getByTestId('cart-checkout')).toHaveCount(0);
+});
+
+test('прямой переход на /checkout с пустой корзиной перенаправляет в корзину', async ({ page }) => {
+
+  await page.goto('/cart');
+  await expect(page.getByTestId('cart-empty')).toBeVisible();
+
+  await page.goto('/checkout', { waitUntil: 'domcontentloaded' });
+
+  await expect(page).toHaveURL('/cart');
+  await expect(page.getByTestId('cart-empty')).toBeVisible();
 });

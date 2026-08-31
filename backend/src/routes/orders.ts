@@ -38,7 +38,7 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
     if (err instanceof OrderError) {
       const status = err.code === 'BAD_REQUEST' ? 400
         : err.code === 'NOT_FOUND' ? 404
-        : 400; // по умолчанию
+        : 400;
       return res.status(status).json({
         error: { code: err.code, message: err.message }
       });

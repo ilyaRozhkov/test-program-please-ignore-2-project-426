@@ -62,7 +62,7 @@ model ProductListParams {
   @query available?: boolean;
   @query search?: string;
   @query page?: int32;
-  @query limit?: int32;
+  @query limit?: int32 = 10;
 }
 model ProductListResponse {
   items: Product[];
@@ -100,10 +100,7 @@ model Order {
   createdAt: string;
 }
 model CreateOrderRequest {
-    items: {
-    productId: int32;
-    quantity: int32;
-  }[];
+  items: { productId: int32; quantity: int32 }[];
   deliveryMethod: "delivery" | "pickup";
   recipientName: string;
   phone: string;

@@ -11,8 +11,17 @@ export async function getCategories() {
   return prisma.category.findMany({ orderBy: { name: 'asc' } });
 }
 
-export async function getProducts(params: any) {
-  const { category, minPrice, maxPrice, available, search, page = 1, limit = 10 } = params;
+// Принимает уже валидированные параметры
+export async function getProducts(params: {
+  category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  available?: boolean;
+  search?: string;
+  page: number;
+  limit: number;
+}) {
+  const { category, minPrice, maxPrice, available, search, page, limit } = params;
   const where: any = {};
   if (category) where.category = { slug: category };
   if (minPrice !== undefined) where.price = { gte: minPrice };

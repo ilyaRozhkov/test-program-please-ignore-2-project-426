@@ -1,19 +1,30 @@
-import { test, expect } from '@playwright/test';
-import {
-  register,
-  addAvailableProductToCart,
-  fillCheckout,
-  parseAmount,
-  openCatalog,
-} from './helpers';
+import { test, expect, Page } from '@playwright/test';
+import { register, login, addAvailableProductToCart, fillCheckout, parseAmount, openCatalog } from './helpers';
 
-const uniqueEmail = (prefix: string) => `${prefix}-${Date.now()}@example.com`;
+const uniqueEmail = (prefix: string) => `${prefix}+${Date.now()}${Math.floor(Math.random() * 1000)}@example.com`;
 
 test('неавторизованный не может оформить заказ', async ({ page }) => {
   await page.goto('/checkout');
   await expect(page).toHaveURL('/login');
 });
 
+test('авторизованный пользователь оформляет заказ и видит страницу успеха', async ({ page }) => {
+  await register(page, uniqueEmail('success'));
+  const expected = await addAvailableProductToCart(page, 2);
+  await page.getByTestId('nav-cart').click();
+  await page.getByTestId('cart-checkout').click();
+  await fillCheckout(page, 'delivery');
+  await page.getByTestId('checkout-submit').click();
+  await expect(page.getByTestId('order-success')).toBeVisible();
+  expect(parseAmount((await page.getByTestId('order-total').textContent()) ?? '')).toBe(expected);
+});
+
+test('пустую корзину оформить нельзя', async ({ page }) => {
+  await register(page, uniqueEmail('empty'));
+  await page.goto('/checkout');
+  await expect(page).toHaveURL('/cart'); 
+  await expect(page.getByTestId('cart-empty')).toBeVisible();
+});
 
 test('при доставке адрес обязателен', async ({ page }) => {
   await register(page, uniqueEmail('address'));
@@ -57,18 +68,22 @@ test('заказ с недоступным товаром отклоняется
   await addAvailableProductToCart(page);
 
   await openCatalog(page);
-  const index = await page
+  await expect(page.getByTestId('catalog-list')).toBeVisible();
+
+  const unavailableElement = page
     .getByTestId('catalog-item-availability')
-    .evaluateAll((nodes) =>
-      nodes.findIndex((node) => node.getAttribute('data-available') === 'false')
-    );
-  expect(index, 'в каталоге должен быть недоступный товар').toBeGreaterThanOrEqual(0);
-  await page.getByTestId('catalog-item-name').nth(index).click();
-  const unavailableId = new URL(page.url()).pathname.split('/').filter(Boolean).pop() ?? '';
-  expect(unavailableId).not.toBe('');
+    .filter({ has: page.locator('[data-available="false"]') })
+    .first();
+
+  const productId = await unavailableElement
+    .locator('..') 
+    .getAttribute('data-product-id');
+
+  expect(productId).not.toBeNull();
+  const numericId = Number(productId);
 
   await page.evaluate((productId) => {
-    for (let i = 0; i < window.localStorage.length; i++) {
+    for (let i = 0; i < window.localStorage.length; i += 1) {
       const key = window.localStorage.key(i);
       if (!key) continue;
       const raw = window.localStorage.getItem(key);
@@ -79,13 +94,13 @@ test('заказ с недоступным товаром отклоняется
           parsed.push({ productId, quantity: 1 });
           window.localStorage.setItem(key, JSON.stringify(parsed));
         }
-      } catch {}
+      } catch {
+      }
     }
-  }, unavailableId);
+  }, numericId);
 
   await page.getByTestId('nav-cart').click();
   await expect(page.getByTestId('cart-total')).toBeVisible();
-  await page.getByTestId('cart-checkout').click();
   await fillCheckout(page, 'pickup');
   await page.getByTestId('checkout-submit').click();
 
@@ -93,6 +108,35 @@ test('заказ с недоступным товаром отклоняется
   await expect(page.getByTestId('order-success')).toBeHidden();
 });
 
+test('в личном кабинете видны заказы пользователя с деталями', async ({ page }) => {
+  await register(page, uniqueEmail('account'));
+  const expected = await addAvailableProductToCart(page, 2);
+  await page.getByTestId('nav-cart').click();
+  await page.getByTestId('cart-checkout').click();
+  await fillCheckout(page, 'delivery');
+  await page.getByTestId('checkout-submit').click();
+  await expect(page.getByTestId('order-success')).toBeVisible();
+
+  await page.getByTestId('nav-account').click();
+  await expect(page.getByTestId('account-orders')).toBeVisible();
+  await expect(page.getByTestId('account-order-item')).toHaveCount(1);
+
+  const order = page.getByTestId('account-order-item').first();
+  await expect(order.getByTestId('order-status')).toHaveAttribute('data-status', 'paid');
+  expect(parseAmount((await order.getByTestId('order-total').textContent()) ?? '')).toBe(expected);
+
+  const detailsButton = order.getByRole('button', { name: /Показать детали/i });
+  if (await detailsButton.isVisible()) {
+    await detailsButton.click();
+  }
+
+  const orderItems = order.getByTestId('order-item');
+  await expect(orderItems).toHaveCount(2); 
+
+  const firstItem = orderItems.first();
+  const itemText = await firstItem.textContent();
+  expect(itemText).toMatch(/\d+ × \d+ = \d+ ₽/);
+});
 
 test('пользователь видит только свои заказы', async ({ page }) => {
   await register(page, uniqueEmail('owner'));
