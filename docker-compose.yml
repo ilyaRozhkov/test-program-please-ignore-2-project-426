@@ -9,5 +9,44 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-volumes:
-  pgdata:
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/pcshop?schema=public
+      PORT: 3000
+      JWT_SECRET: testsecret
+      NODE_ENV: production
+      ROLLBAR_ACCESS_TOKEN_BACKEND: dummy
+      ROLLBAR_ACCESS_TOKEN_FRONTEND: dummy
+      VITE_ROLLBAR_ACCESS_TOKEN_FRONTEND: dummy
+    ports:
+      - "3000:3000"
+
+  test:
+    build: .
+    depends_on:
+      app:
+        condition: service_started
+      db:
+        condition: service_healthy
+    environment:
+      PLAYWRIGHT_BASE_URL: http://app:3000
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/pcshop?schema=public
+      PORT: 3000
+      JWT_SECRET: testsecret
+      NODE_ENV: test
+      ROLLBAR_ACCESS_TOKEN_BACKEND: dummy
+      ROLLBAR_ACCESS_TOKEN_FRONTEND: dummy
+      VITE_ROLLBAR_ACCESS_TOKEN_FRONTEND: dummy
+    command: npm test
+    volumes:
+      - ./playwright-report:/app/playwright-report
