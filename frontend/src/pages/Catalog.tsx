@@ -52,7 +52,7 @@ export const Catalog: React.FC = () => {
       }
     };
 
-    const timer = setTimeout(load, 250);
+    const timer = setTimeout(load, 50);
     return () => {
       clearTimeout(timer);
       controller.abort();
