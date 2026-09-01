@@ -93,6 +93,7 @@ jobs:
           exit 1
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/pcshop?schema=public
+          PORT: 3000
           NODE_ENV: test
           JWT_SECRET: testsecret
           ROLLBAR_ACCESS_TOKEN_BACKEND: dummy
