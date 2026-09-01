@@ -16,15 +16,17 @@ if (!PORT) {
   process.exit(1);
 }
 
-process.on('uncaughtException', (err) => {
-  rollbar.error(err);
-  console.error('Uncaught Exception:', err);
+process.on('uncaughtException', (err: unknown) => {
+  const error = err instanceof Error ? err : new Error(String(err));
+  rollbar.error(error);
+  console.error('Uncaught Exception:', error);
   process.exit(1);
 });
 
-process.on('unhandledRejection', (reason) => {
-  rollbar.error(reason);
-  console.error('Unhandled Rejection:', reason);
+process.on('unhandledRejection', (reason: unknown) => {
+  const error = reason instanceof Error ? reason : new Error(String(reason));
+  rollbar.error(error);
+  console.error('Unhandled Rejection:', error);
   process.exit(1);
 });
 
@@ -43,7 +45,8 @@ async function startServer() {
     console.log('Database connected.');
     await applyMigrationsAndSeed();
     app.listen(Number(PORT), () => console.log(`Server running on port ${PORT}`));
-  } catch (error) {
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
     console.error('Startup error:', error);
     rollbar.error(error);
     process.exit(1);
