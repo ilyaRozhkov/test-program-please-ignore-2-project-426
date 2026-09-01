@@ -5,7 +5,6 @@ import {
   User,
   Category,
   Product,
-  ProductListParams,
   ProductListResponse,
   CreateOrderRequest,
   CreateOrderResponse,
@@ -66,8 +65,8 @@ export async function getCategories(): Promise<Category[]> {
   return res.json();
 }
 
-export async function getProducts(params: ProductListParams, options?: { signal?: AbortSignal }): Promise<ProductListResponse> {
-  const query = new URLSearchParams(params as any).toString();
+export async function getProducts(params: Record<string, any>, options?: { signal?: AbortSignal }): Promise<ProductListResponse> {
+  const query = new URLSearchParams(params).toString();
   const res = await fetch(`/api/catalog/products?${query}`, { signal: options?.signal });
   if (!res.ok) {
     const err = await res.json();
