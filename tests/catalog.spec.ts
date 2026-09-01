@@ -142,12 +142,8 @@ test('первая страница остаётся на месте при кл
   const firstPage = await visibleNames(page);
   expect(firstPage.length).toBeGreaterThan(0);
 
-  const prev = page.getByTestId('catalog-page-prev');
-  if ((await prev.count()) > 0 && (await prev.isEnabled())) {
-    await prev.click();
-  }
+  await expect(page.getByTestId('catalog-page-prev')).toBeDisabled();
 
-  await expect(page.getByTestId('catalog-empty')).toBeHidden();
   await expect.poll(async () => (await visibleNames(page)).join('|')).toBe(firstPage.join('|'));
 });
 

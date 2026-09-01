@@ -121,7 +121,6 @@ export interface components {
       available: boolean;
       category: components["schemas"]["Category"];
     };
-    ProductListParams: Record<string, never>;
     ProductListResponse: {
       items: components["schemas"]["Product"][];
       /** Format: int32 */
@@ -229,8 +228,7 @@ export interface operations {
   };
   Catalog_getProducts: {
     parameters: {
-      query: {
-        params: components["schemas"]["ProductListParams"];
+      query?: {
         category?: string;
         minPrice?: number;
         maxPrice?: number;

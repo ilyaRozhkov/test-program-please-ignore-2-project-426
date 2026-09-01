@@ -55,15 +55,6 @@ model Product {
   available: boolean;
   category: Category;
 }
-model ProductListParams {
-  @query category?: string;
-  @query minPrice?: int32;
-  @query maxPrice?: int32;
-  @query available?: boolean;
-  @query search?: string;
-  @query page?: int32;
-  @query limit?: int32 = 10;
-}
 model ProductListResponse {
   items: Product[];
   total: int32;
@@ -100,7 +91,10 @@ model Order {
   createdAt: string;
 }
 model CreateOrderRequest {
-  items: { productId: int32; quantity: int32 }[];
+  items: {
+    productId: int32;
+    quantity: int32;
+  }[];
   deliveryMethod: "delivery" | "pickup";
   recipientName: string;
   phone: string;
@@ -113,7 +107,6 @@ model CreateOrderResponse {
 // ----- Сервис -----
 @service({
   title: "PC Store API",
-  version: "1.0.0",
 })
 namespace Api {
   @route("/api/auth")
@@ -127,7 +120,16 @@ namespace Api {
   @route("/api/catalog")
   namespace Catalog {
     @get @route("/categories") op getCategories(): Category[] | ErrorResponse;
-    @get @route("/products") op getProducts(@query params: ProductListParams): ProductListResponse | ErrorResponse;
+    // ✅ Прямые параметры с дефолтами
+    @get @route("/products") op getProducts(
+      @query category?: string,
+      @query minPrice?: int32,
+      @query maxPrice?: int32,
+      @query available?: boolean,
+      @query search?: string,
+      @query page?: int32 = 1,
+      @query limit?: int32 = 10
+    ): ProductListResponse | ErrorResponse;
     @get @route("/products/{slug}") op getProductBySlug(@path slug: string): Product | ErrorResponse;
     @post @route("/products/batch") op getProductsByIds(@body ids: int32[]): Product[] | ErrorResponse;
   }

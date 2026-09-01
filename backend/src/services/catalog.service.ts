@@ -11,7 +11,6 @@ export async function getCategories() {
   return prisma.category.findMany({ orderBy: { name: 'asc' } });
 }
 
-// Принимает уже валидированные параметры
 export async function getProducts(params: {
   category?: string;
   minPrice?: number;

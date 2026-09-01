@@ -88,14 +88,13 @@ cache['ea5318a8db980e147769a5c177477172'] = [
   T.Array(cache['b12ac447960cfe6bac40a3934c140700']),
   T.Object(cache['0f9fab53d63b4f2f184dae2fa0fcb4f4'])
 ]
-cache['1b6695fa52e82b02b3b3a03dbdc4be5f'] = {
-  params: Json(),
+cache['7d288aca80eeeeb30a56fac45fcac0da'] = {
   category: T.Optional(T.String()),
   minPrice: T.Optional(T.Integer({ format: 'int32' })),
   maxPrice: T.Optional(T.Integer({ format: 'int32' })),
   available: T.Optional(T.Boolean()),
   search: T.Optional(T.String()),
-  page: T.Optional(T.Integer({ format: 'int32' })),
+  page: T.Optional(T.Integer({ format: 'int32', default: 1 })),
   limit: T.Optional(T.Integer({ format: 'int32', default: 10 }))
 }
 cache['a0896c9a63d6dd4d99d347507f555aa3'] = {
@@ -281,9 +280,11 @@ const schema = {
   },
   '/api/catalog/products': {
     GET: {
-      args: T.Object({
-        query: T.Object(cache['1b6695fa52e82b02b3b3a03dbdc4be5f'])
-      }),
+      args: T.Optional(
+        T.Object({
+          query: T.Optional(T.Object(cache['7d288aca80eeeeb30a56fac45fcac0da']))
+        })
+      ),
       data: T.Union([
         T.Union(cache['225a045a009455c64b9413cca0eb6fec'], {
           'x-status-code': '200',

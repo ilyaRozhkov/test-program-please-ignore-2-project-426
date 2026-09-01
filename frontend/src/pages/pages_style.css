@@ -186,11 +186,7 @@ text-decoration: none;
     color: gray;
 }
 
-.catalog-data-card-container{
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-}
+
 .login-page-container{
 padding: 0 100px 0;
     display: flex;

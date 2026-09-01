@@ -31,7 +31,7 @@ export const Account: React.FC = () => {
               <div data-testid="order-status" data-status={order.status}>Статус: {order.status}</div>
               <div>Дата: {new Date(order.createdAt).toLocaleDateString()}</div>
               <div data-testid="order-total">Сумма: {order.total} ₽</div>
-              <button onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}>
+              <button onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)} data-testid="order-details-toggle">
                 {expandedOrder === order.id ? 'Скрыть детали' : 'Показать детали'}
               </button>
               {expandedOrder === order.id && (

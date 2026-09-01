@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: PC Store API
-  version: 1.0.0
+  version: 0.0.0
 tags: []
 paths:
   /api/auth/login:
@@ -92,11 +92,6 @@ paths:
     get:
       operationId: Catalog_getProducts
       parameters:
-        - name: params
-          in: query
-          required: true
-          schema:
-            $ref: '#/components/schemas/ProductListParams'
         - name: category
           in: query
           required: false
@@ -130,6 +125,7 @@ paths:
           schema:
             type: integer
             format: int32
+            default: 1
         - name: limit
           in: query
           required: false
@@ -440,8 +436,6 @@ components:
           type: boolean
         category:
           $ref: '#/components/schemas/Category'
-    ProductListParams:
-      type: object
     ProductListResponse:
       type: object
       required:
