@@ -9,7 +9,6 @@ export type ErrorResponse = components['schemas']['ErrorResponse'];
 
 export type Category = components['schemas']['Category'];
 export type Product = components['schemas']['Product'];
-export type ProductListParams = components['schemas']['ProductListParams'];
 export type ProductListResponse = components['schemas']['ProductListResponse'];
 
 export type CreateOrderRequest = components['schemas']['CreateOrderRequest'];
